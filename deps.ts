@@ -6,4 +6,5 @@ export const Path = {
 };
 
 // TS
-export { ts as TS } from 'https://deno.land/x/ts_morph@15.1.0/mod.ts';
+export { ts } from 'https://deno.land/x/ts_morph@15.1.0/mod.ts';
+export * as TSM from 'https://deno.land/x/ts_morph@15.1.0/mod.ts';

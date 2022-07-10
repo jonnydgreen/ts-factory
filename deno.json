@@ -1,8 +1,20 @@
 {
+  "lint": {
+    "files": {
+      "exclude": [
+        "spikes"
+      ]
+    }
+  },
   "fmt": {
     "options": {
       "lineWidth": 89,
       "singleQuote": true
+    },
+    "files": {
+      "exclude": [
+        "spikes"
+      ]
     }
   },
   "tasks": {
