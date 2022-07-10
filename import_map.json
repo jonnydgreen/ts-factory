@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "https://deno.land/": "./vendor/deno.land/",
+    "https://esm.sh/v86/@types/sinon@latest/index.d.ts": "./vendor/esm.sh/v86/@types/sinon@10.0.11/index.d.ts"
+  }
+}
