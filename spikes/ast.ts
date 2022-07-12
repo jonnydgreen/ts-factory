@@ -11,28 +11,30 @@ const SyntaxKind = ts.SyntaxKind;
 
 const fileName = 'spikes/example.ts';
 const source = await Deno.readTextFile(fileName);
-const sourceFile = ts.createSourceFile(
-  fileName,
-  source,
-  ts.ScriptTarget.Latest,
-  true,
-);
+const project = new TSM.Project();
+const sourceFile = project.addSourceFileAtPath(fileName);
+// const sourceFile = ts.createSourceFile(
+//   fileName,
+//   source,
+//   ts.ScriptTarget.Latest,
+//   true,
+// );
 
 // Add an ID to every node in the tree to make it easier to identify in
 // the consuming application.
 let nextId = 0;
+const nodes = new Map<number, TSNode>();
 function addId(node: TSNode) {
+  // TODO: use symbol
   node.id = ++nextId;
+  nodes.set(nextId, node);
   ts.forEachChild(node, addId);
 }
-addId(sourceFile);
-
-// No need to save the source again.
-sourceFile.text = '';
+addId(sourceFile.compilerNode);
 
 const cache: unknown[] = [];
 const keysToDiscard = ['flags', 'transformFlags', 'modifierFlagsCache'];
-const ast: TSNodeAST<ts.SourceFile> = JSON.parse(
+const existingAST: TSNodeAST<ts.SourceFile> = JSON.parse(
   JSON.stringify(sourceFile, (key, value) => {
     // Discard the following.
     if (keysToDiscard.includes(key)) {
@@ -50,12 +52,6 @@ const ast: TSNodeAST<ts.SourceFile> = JSON.parse(
     return value;
   }),
 );
-
-function createAST<TNode extends ts.Node = ts.Node>(
-  node: TSNodeAST<TNode>,
-): TSNodeAST<TNode> {
-  return node;
-}
 
 // const newAST: TSNodeAST<ts.SourceFile> = {
 //   kind: SyntaxKind.SourceFile,
@@ -94,6 +90,17 @@ const newAST = {
       kind: SyntaxKind.ExpressionStatement,
       expression: {
         kind: SyntaxKind.CallExpression,
+        // TODO: Need to think about how this works for subsequent runs on existing files.
+        // Do we add again?
+        // How can we detect existing call expressions?
+        // Can we detect them?
+        // Should we detect them?
+        // Do we need a skipIf operation at the statement level?
+        __operations: {
+          skip: {
+            keys: ['expression.expression.escapedText'],
+          },
+        },
         expression: {
           kind: SyntaxKind.PropertyAccessExpression,
           expression: {
@@ -116,6 +123,111 @@ const newAST = {
   ],
 };
 
+const newNodeText = 'console.log("Hello, there.");';
+
+// const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
+//   const visit: ts.Visitor = (node: TSNode) => {
+//     node = ts.visitEachChild(node, visit, context);
+
+//     if (
+//       Number.isInteger(node.id) && ts.isBlock(node) && ts.isTryStatement(node.parent)
+//     ) {
+//       console.log('IN TRY BLOCK');
+//       const consoleLogNode = factory.createExpressionStatement(
+//         factory.createCallExpression(
+//           factory.createPropertyAccessExpression(
+//             factory.createIdentifier('console'),
+//             factory.createIdentifier('log'),
+//           ),
+//           undefined,
+//           [factory.createStringLiteral('Hello, there.')],
+//         ),
+//       );
+//       console.log('------------');
+//       const wrappedNode = TSM.createWrappedNode(node, {
+//         sourceFile: sourceFile.compilerNode,
+//         typeChecker: project.getTypeChecker().compilerObject,
+//       });
+//       console.log('------------');
+//       wrappedNode.addStatements(TSM.printNode(consoleLogNode));
+//       console.log('------------');
+//       // const newStatement = TSM.printNode(consoleLogNode);
+//       // // The function checkChangeRange in typescript.js code-documents the specs for TextChangeRange and newText
+//       // const oldText = node.getFullText()
+//       // const textChangeRange: ts.TextChangeRange = {
+//       //   newLength: newStatement.length,
+//       //   span: { start: oldText.length - 1, length: 0 },
+//       // };
+//       // const newText = oldText + newStatement
+//       // return factory.createTryStatement(node.tryBlock.)
+//       // ts.updateSourceFile(sourceFile);
+//       return wrappedNode.compilerNode;
+//     }
+
+//     // if (node.id === 1 && ts.isSourceFile(node)) {
+//     //   console.log('IN SOURCE FILE');
+//     //   const consoleLogNode = factory.createExpressionStatement(
+//     //     factory.createCallExpression(
+//     //       factory.createPropertyAccessExpression(
+//     //         factory.createIdentifier('console'),
+//     //         factory.createIdentifier('log'),
+//     //       ),
+//     //       undefined,
+//     //       [factory.createStringLiteral('Hello, there.')],
+//     //     ),
+//     //   );
+//     //   const newStatement = TSM.printNode(consoleLogNode);
+//     //   // The function checkChangeRange in typescript.js code-documents the specs for TextChangeRange and newText
+//     //   const oldText = node.getFullText()
+//     //   const textChangeRange: ts.TextChangeRange = {
+//     //     newLength: newStatement.length,
+//     //     span: { start: oldText.length - 1, length: 0 },
+//     //   };
+//     //   const newText = oldText + newStatement
+//     //   return node.update(newText, textChangeRange)
+//     // }
+
+//     return node;
+//   };
+
+//   return (node) => ts.visitNode(node, visit);
+// };
+
+// const [result] = ts.transform(sourceFile.compilerNode, [transformer]).transformed;
+
+function traverseAST(node: TSM.Node): void {
+  console.log(node.getKindName());
+  if (
+    node.isKind(SyntaxKind.Block) && node.getParent().isKind(SyntaxKind.TryStatement)
+  ) {
+    const consoleLogNode = factory.createExpressionStatement(
+      factory.createCallExpression(
+        factory.createPropertyAccessExpression(
+          factory.createIdentifier('console'),
+          factory.createIdentifier('log'),
+        ),
+        undefined,
+        [factory.createStringLiteral('Hello, there.')],
+      ),
+    );
+    const newStatement = TSM.printNode(consoleLogNode);
+    node.addStatements([newStatement]);
+  }
+
+  if (node.isKind(SyntaxKind.ObjectLiteralExpression)) {
+    console.log('OBJECT LITERAL');
+    node.addPropertyAssignment({ name: 'hello', initializer: '"there"' });
+  }
+
+  node.forEachChild(traverseAST);
+}
+
+traverseAST(sourceFile);
+
+console.log('==================');
+console.log(sourceFile.getFullText());
+console.log('==================');
+
 const consoleLogNode = factory.createSourceFile(
   [factory.createExpressionStatement(factory.createCallExpression(
     factory.createPropertyAccessExpression(
@@ -130,7 +242,7 @@ const consoleLogNode = factory.createSourceFile(
 );
 
 // If no node, construct and insert
-const builtNode = buildNode(newAST);
+const builtNode = buildNode(nodes, newAST);
 
 const expected = TSM.printNode(consoleLogNode);
 const actual = TSM.printNode(builtNode);

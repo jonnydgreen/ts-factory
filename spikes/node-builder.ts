@@ -1,39 +1,47 @@
 import { ts } from '../deps.ts';
+import { TSNode, TSNodeAST } from './ast.type.ts';
 
 const SyntaxKind = ts.SyntaxKind;
 const factory = ts.factory;
 
-export function shouldBuildNode(ast: any): ts.Node | undefined {
+export function shouldBuildNode(
+  nodes: Map<number, TSNode>,
+  ast: any,
+): ts.Node | undefined {
   if (typeof ast === 'undefined') {
     return;
   }
 
-  return buildNode(ast);
+  return buildNode(nodes, ast);
 }
 
-export function buildNode(ast: any): any {
+export function buildNode(
+  nodes: Map<number, TSNode>,
+  ast: any,
+  parentNode?: ts.Node,
+): any {
   switch (ast.kind) {
     case SyntaxKind.SourceFile: {
       return factory.createSourceFile(
-        ast.statements.map(buildNode),
+        ast.statements.map((statement: TSNodeAST) => buildNode(nodes, statement)),
         factory.createToken(ts.SyntaxKind.EndOfFileToken),
         ts.NodeFlags.None,
       );
     }
     case SyntaxKind.ExpressionStatement: {
-      return factory.createExpressionStatement(buildNode(ast.expression));
+      return factory.createExpressionStatement(buildNode(nodes, ast.expression));
     }
     case SyntaxKind.CallExpression: {
       return factory.createCallExpression(
-        buildNode(ast.expression),
-        ast.typeArguments?.map(buildNode(ast.typeArguments)),
-        ast.arguments?.map(buildNode),
+        buildNode(nodes, ast.expression),
+        ast.typeArguments?.map((argument: TSNodeAST) => buildNode(nodes, argument)),
+        ast.arguments?.map((argument: TSNodeAST) => buildNode(nodes, argument)),
       );
     }
     case SyntaxKind.PropertyAccessExpression: {
       return factory.createPropertyAccessExpression(
-        buildNode(ast.expression),
-        buildNode(ast.name),
+        buildNode(nodes, ast.expression),
+        buildNode(nodes, ast.name),
       );
     }
     case SyntaxKind.Identifier: {
