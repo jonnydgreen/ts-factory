@@ -17,7 +17,7 @@
     "fmt-check": "deno fmt --check",
     "lint": "deno lint",
     "cache": "deno cache -r deps.ts test.deps.ts",
-    "test-files": "deno test --coverage=cov --doc",
+    "test-files": "deno test --allow-read --allow-write --coverage=cov --doc",
     "test": "deno task fmt-check && deno task lint && deno task test-files tests",
     "cov": "deno task test && deno coverage cov",
     "lcov": "deno coverage --lcov --output=cov.lcov cov",
