@@ -1,0 +1,43 @@
+export const snapshot = {};
+
+snapshot[`Instructions > ADD Instruction > add a statement to a source file that doesn't exist 1`] = `
+'// Hello
+console.log("Hello")
+// There
+console.log("There")
+'
+`;
+
+snapshot[`Instructions > ADD Instruction > add a statement to a source file that exists 1`] = `
+'/**
+ * Hello
+ */
+export function hello() {
+  // Hello
+  console.log("Hello");
+
+  // There
+  console.log("There");
+}
+// Extra
+console.log("Extra")
+// Log
+console.log("Log")
+'
+`;
+
+snapshot[`Instructions > ADD Instruction > should add a statement to an existing block 1`] = `
+'/**
+ * Hello
+ */
+export function hello() {
+  // Hello
+  console.log("Hello");
+
+  // There
+  console.log("There");
+  // Return data
+  return getData();
+}
+'
+`;

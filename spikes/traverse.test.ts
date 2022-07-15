@@ -52,7 +52,11 @@ function getNode<TNode>(nodes: Map<number, ts.Node>, id: number): TNode {
   return node as unknown as TNode;
 }
 
-function registerNode(nodes: Map<number, ts.Node>, definition: any, node: ts.Node) {
+function registerNode(
+  nodes: Map<number, ts.Node>,
+  definition: any,
+  node: ts.Node,
+) {
   // TODO: maybe add a duplicate check
   if (definition.leadingComment) {
     ts.addSyntheticLeadingComment(
@@ -65,7 +69,44 @@ function registerNode(nodes: Map<number, ts.Node>, definition: any, node: ts.Nod
   nodes.set(definition.id, node);
 }
 
-function process(nodes: Map<number, ts.Node>, definition: any) {
+function shouldGetTSMNode<TNode>(
+  node: TSM.Node,
+  compilerNode: ts.Node,
+): TNode | undefined {
+  if (node.getKind() === SyntaxKind.TryStatement) {
+    console.log(
+      node.getKindName(),
+      (node.compilerNode as any)._id,
+      (compilerNode as any)._id,
+    );
+  }
+  if (node.compilerNode === compilerNode) {
+    return node as unknown as TNode;
+  }
+
+  for (const child of node.getChildren()) {
+    const foundNode = shouldGetTSMNode(child, compilerNode);
+    if (foundNode) {
+      return foundNode as unknown as TNode;
+    }
+  }
+}
+
+function getTSMNode<TNode>(node: TSM.Node, compilerNode: ts.Node): TNode {
+  const foundNode = shouldGetTSMNode<TNode>(node, compilerNode);
+  if (!foundNode) {
+    throw new Error(
+      `Unable to find compiler node in source file: ${SyntaxKind[compilerNode.kind]}`,
+    );
+  }
+  return foundNode;
+}
+
+function process(
+  sourceFile: TSM.SourceFile,
+  nodes: Map<number, ts.Node>,
+  definition: any,
+) {
   switch (definition.kind) {
     case SyntaxKind.SourceFile: {
       const sourceFile: TSM.SourceFile = definition.sourceFile;
@@ -80,18 +121,50 @@ function process(nodes: Map<number, ts.Node>, definition: any) {
     }
     case SyntaxKind.ExpressionStatement: {
       const expression = getNode<ts.Expression>(nodes, definition.expression);
-      registerNode(nodes, definition, factory.createExpressionStatement(expression));
+      registerNode(
+        nodes,
+        definition,
+        factory.createExpressionStatement(expression),
+      );
       break;
     }
     case SyntaxKind.StringLiteral: {
       registerNode(
         nodes,
         definition,
-        factory.createStringLiteral(
-          definition.text,
-          definition.isSingleQuote,
-        ),
+        factory.createStringLiteral(definition.text, definition.isSingleQuote),
       );
+      break;
+    }
+    case SyntaxKind.Block: {
+      const existingBlock = getTSMNode<TSM.Block>(
+        sourceFile,
+        getNode<ts.Block>(nodes, definition.id),
+      );
+      const statements: string[] = [];
+      for (const statementId of definition.statements) {
+        const node = getNode<ts.Statement>(nodes, statementId);
+        statements.push(getNodeText(node).replace(/^\r?\n/, ''));
+      }
+      existingBlock.removeText();
+      existingBlock.addStatements(statements);
+      break;
+    }
+    case SyntaxKind.TryStatement: {
+      const existingTryStatement = getTSMNode<TSM.TryStatement>(
+        sourceFile,
+        getNode<ts.Block>(nodes, definition.id),
+      );
+      const statements: string[] = [];
+      for (const statementId of definition.statements) {
+        const node = getNode<ts.Statement>(nodes, statementId);
+        statements.push(getNodeText(node).replace(/^\r?\n/, ''));
+      }
+      console.log('================');
+      console.log(existingTryStatement.getTryBlock());
+      console.log(existingTryStatement.getCatchClause());
+      console.log(existingTryStatement.getFinallyBlock());
+      console.log('================');
       break;
     }
     default: {
@@ -102,7 +175,103 @@ function process(nodes: Map<number, ts.Node>, definition: any) {
   }
 }
 
+function addId(node: ts.Node): void {
+  (node as any)._id = crypto.randomUUID();
+  node.forEachChild(addId);
+}
+
 blocks.describe('Like Terraform', () => {
+  blocks.it.only(
+    'should render a nested node with an existing file node',
+    async (t) => {
+      // Arrange
+      function findNode(
+        node: ts.Node,
+        kind: ts.SyntaxKind,
+      ): ts.Node | undefined {
+        if (node.kind === kind) {
+          return node;
+        }
+
+        for (const child of node.getChildren()) {
+          const foundNode = findNode(child, kind);
+          if (foundNode) {
+            return foundNode;
+          }
+        }
+      }
+
+      const nodes = new Map<number, ts.Node>();
+      const p = new TSM.Project();
+      const sourceFile = p.addSourceFileAtPath('spikes/try.ts');
+      addId(sourceFile.compilerNode);
+
+      const consoleLogExprNode = findNode(
+        sourceFile.compilerNode,
+        ts.SyntaxKind.ExpressionStatement,
+      )!;
+      const blockNode = consoleLogExprNode.parent;
+      const tryStatement = blockNode.parent as ts.TryStatement;
+      const catchClauseNode = tryStatement.catchClause;
+      const fBlock = tryStatement.parent;
+      const fn = fBlock.parent;
+      nodes.set(17, blockNode);
+      nodes.set(18, consoleLogExprNode);
+      nodes.set(19, catchClauseNode!);
+      nodes.set(20, tryStatement);
+      nodes.set(21, fBlock);
+      nodes.set(22, fn);
+
+      // Act
+      const definitions = [
+        {
+          id: 1,
+          kind: SyntaxKind.StringLiteral,
+          text: 'Hello',
+          isSingleQuote: true,
+        },
+        {
+          id: 2,
+          kind: SyntaxKind.ExpressionStatement,
+          expression: 1,
+        },
+        {
+          id: 17,
+          kind: SyntaxKind.Block,
+          statements: [18, 2],
+        },
+        {
+          id: 20,
+          kind: SyntaxKind.TryStatement,
+          tryBlock: 17,
+          catchClause: 19,
+        },
+        {
+          id: 21,
+          kind: SyntaxKind.Block,
+          statements: [20],
+        },
+        {
+          id: 22,
+          kind: SyntaxKind.FunctionDeclaration,
+          statements: [21],
+        },
+        {
+          id: 100,
+          kind: SyntaxKind.SourceFile,
+          statements: [22],
+          sourceFile,
+        },
+      ];
+      for (const definition of definitions) {
+        process(sourceFile, nodes, definition);
+      }
+
+      // Assert
+      await asserts.assertSnapshot(t, sourceFile.getFullText());
+    },
+  );
+
   blocks.it('should render with a manual factory', async (t) => {
     // Arrange
     const nodes = new Map<number, ts.Node>();
@@ -134,7 +303,7 @@ blocks.describe('Like Terraform', () => {
       },
     ];
     for (const definition of definitions) {
-      process(nodes, definition);
+      process(sourceFile, nodes, definition);
     }
 
     // Assert
@@ -177,7 +346,7 @@ blocks.describe('Like Terraform', () => {
       },
     ];
     for (const definition of definitions) {
-      process(nodes, definition);
+      process(sourceFile, nodes, definition);
     }
 
     // Assert
