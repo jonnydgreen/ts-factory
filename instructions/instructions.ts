@@ -176,6 +176,11 @@ export function createNodeID(id = '', ...nextIDs: string[]): NodeID {
   return createOpaqueString<NodeID>(newId.replace(/^\.+/, ''));
 }
 
+export function isDefinition(definition: unknown): definition is Definition {
+  return typeof definition === 'object' && definition !== null &&
+    Number.isInteger((definition as Definition).kind);
+}
+
 export function generateInstructions(
   node: tsm.Node,
   definition: Definition,
@@ -221,27 +226,34 @@ export function generateInstructions(
             );
           } else {
             const nodeId = createNodeID(nodeID, fieldName, foundNodeIndex.toString());
-            instructions.push(
-              ...generateInstructions(nodes[foundNodeIndex], fieldDefinition, nodeId),
-            );
+            if (isDefinition(fieldDefinition)) {
+              instructions.push(
+                ...generateInstructions(nodes[foundNodeIndex], fieldDefinition, nodeId),
+              );
+            }
           }
         }
       }
     } else {
-      // If no instructions, we compile using the default instruction rules
-      // const fieldDefinition = fieldDefinitionOrDefinitions;
-
-      // if (fieldDefinition.__instructions.id) {
-      //   const data = (nodeValueOrValues as tsm.Node[]).map((node) =>
-      //     node.compilerNode
-      //   );
-      //   const result = jsonata(fieldDefinition.__instructions.id).evaluate(data);
-      //   if (!result) {
-      //     instructions.push(
-      //       ...compileInstructions(nodeID, [fieldDefinition], fieldName),
-      //     );
-      //   }
-      // }
+      const fieldDefinition = fieldDefinitionOrDefinitions;
+      if (fieldDefinition.__instructions?.id) {
+        const compiledQuery = jsonata(fieldDefinition.__instructions.id);
+        const foundNode = [nodeValueOrValues as tsm.Node].find((node) =>
+          compiledQuery.evaluate(node.compilerNode)
+        );
+        if (!foundNode) {
+          instructions.push(
+            ...compileInstructions(nodeID, fieldDefinition, fieldName),
+          );
+        } else {
+          const nodeId = createNodeID(nodeID, fieldName);
+          if (isDefinition(fieldDefinition)) {
+            instructions.push(
+              ...generateInstructions(foundNode, fieldDefinition, nodeId),
+            );
+          }
+        }
+      }
     }
   }
   return instructions;
