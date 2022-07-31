@@ -1,0 +1,18 @@
+export const snapshot = {};
+
+snapshot[`Instructions > ADD > FunctionDeclaration > should handle a basic function declaration 1`] = `
+[
+  {
+    definition: [
+      {
+        kind: "FunctionDeclaration",
+        parameters: [
+        ],
+      },
+    ],
+    field: "statements",
+    nodeId: "",
+    type: "ADD",
+  },
+]
+`;

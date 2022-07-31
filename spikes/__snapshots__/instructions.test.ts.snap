@@ -43,43 +43,15 @@ export function hello() {
 `;
 
 snapshot[`Instructions > SET Instruction > set a particular field on an existing node 1`] = `
-'// Hello
-console.log("Hello")
-// There
-console.log("There")
-'
-`;
-
-snapshot[`Instructions > SET Instruction > add a statement to a source file that exists 1`] = `
-\`/**
- * Hello
- */
-export function hello() {
-  // Hello
-  console.log('Hello');
-
-  // There
-  console.log('There');
-}
-// Extra
-console.log("Extra")
-// Log
-console.log("Log")
-\`
-`;
-
-snapshot[`Instructions > SET Instruction > should add a statement to an existing block 1`] = `
 "/**
  * Hello
  */
-export function hello() {
+export function hello(): string {
   // Hello
   console.log('Hello');
 
   // There
   console.log('There');
-  // Return data
-  return getData();
 }
 "
 `;

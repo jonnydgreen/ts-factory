@@ -17,10 +17,11 @@
     "fmt-check": "deno fmt --check",
     "lint": "deno lint",
     "cache": "deno cache -r deps.ts test.deps.ts",
-    "test-files": "deno test --allow-read --allow-write --coverage=cov --doc",
-    "test": "deno task fmt-check && deno task lint && deno task test-files tests",
-    "cov": "deno task test && deno coverage cov",
-    "lcov": "deno coverage --lcov --output=cov.lcov cov",
+    "test-files": "deno test --allow-read --allow-write --coverage=cov_profile --doc",
+    "unit": "deno task test-files tests",
+    "test": "deno task fmt-check && deno task lint && deno task unit",
+    "cov": "deno task test && deno coverage cov_profile",
+    "lcov": "deno coverage --lcov --output=cov.lcov cov_profile",
     "report": "deno task lcov && genhtml -o html_cov cov.lcov && open html_cov/index.html"
   }
 }

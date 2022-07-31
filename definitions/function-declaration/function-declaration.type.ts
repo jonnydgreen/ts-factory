@@ -1,0 +1,29 @@
+import { ts } from '../../deps.ts';
+import { CreateInput } from '../definitions.utils.ts';
+
+/**
+ * Reference:
+ * @type {typeof ts.factory.createFunctionDeclaration}
+ */
+/**
+ * Creates a TypeScript Function Declaration.
+ *
+ * @example
+ * export function hello(): void {}
+ */
+export type FunctionDeclarationInput = CreateInput<
+  ts.FunctionDeclaration,
+  'parameters',
+  'name'
+>;
+// TODO: populate the rest
+// {
+//   parameters: readonly ParameterDeclarationInput[];
+//   decorators?: readonly DecoratorInput[];
+//   modifiers?: readonly ModifierInput[];
+//   asteriskToken?: AsteriskTokenInput;
+//   name?: string | IdentifierInput;
+//   typeParameters?: readonly TypeParameterDeclarationInput[];
+//   type?: TypeNodeInput;
+//   body?: BlockInput;
+// }
