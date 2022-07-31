@@ -5,9 +5,10 @@ import {
   OpaqueString,
 } from './instructions.type.ts';
 import { Definition } from '../definitions/definitions.ts';
-import { jsonata, tsm } from '../deps.ts';
+import { jsonata, ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
 import { StringUtils } from '../utils/utils.string.ts';
+import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
 
 export function astNodeToJSON<T>(node: tsm.Node): T {
   const cache: unknown[] = [];
@@ -52,16 +53,41 @@ export function assertDefinitionKind(
 export function getDefinitionEntries(
   definition: Definition,
 ): [string, ItemOrArray<Definition>][] {
-  const bannedKeys = ['kind', '__operations'];
+  const bannedKeys = ['kind', '__instructions'];
   return Object.entries(definition).filter(([key]) => !bannedKeys.includes(key));
 }
 
 export type ItemOrArray<TItem> = TItem | TItem[];
 
+export function getFunctionDeclarationNodeByDefinitionKey(
+  node: tsm.FunctionDeclaration,
+  fieldName: string,
+): Maybe<ItemOrArray<tsm.Node>> {
+  switch (fieldName as keyof FunctionDeclarationInput) {
+    case 'name': {
+      return node.getNameNode();
+    }
+    case 'type': {
+      return node.getReturnTypeNode();
+    }
+    case 'parameters': {
+      return node.getParameters();
+    }
+  }
+}
+
 export function getFieldNodeByDefinitionKey(
   node: tsm.Node,
   fieldName: string,
 ): Maybe<ItemOrArray<tsm.Node>> {
+  switch (node.getKind()) {
+    case ts.SyntaxKind.FunctionDeclaration: {
+      return getFunctionDeclarationNodeByDefinitionKey(
+        node as tsm.FunctionDeclaration,
+        fieldName,
+      );
+    }
+  }
   // TODO: we should probably be less clever here
   // and provide a mapping for each Syntax Kind
   const getFunctionName = `get${StringUtils.upperFirst(fieldName)}` as keyof tsm.Node;
@@ -74,16 +100,7 @@ export function getFieldNodeByDefinitionKey(
   return getFunction.call(node);
 }
 
-// export function findNode<
-//   TDefinition extends Definition,
-//   TKey extends Extract<keyof TDefinition, string>,
-// >(parentNode: ItemOrArray<tsm.Node>, definition: TDefinition, key?: TKey): Maybe<Item> {
-//   if (!definition.__instructions) {
-//     return undefined;
-//   }
-// }
-
-export function compileDefaultArrayInstructions(
+export function compileDefaultNodeArrayInstructions(
   nodeID: NodeID,
   definitions: Definition[],
   field: string,
@@ -97,6 +114,20 @@ export function compileDefaultArrayInstructions(
   }));
 }
 
+export function compileDefaultNodeInstructions(
+  nodeID: NodeID,
+  definition: Definition,
+  field: string,
+  instructionType?: InstructionType,
+): Instruction[] {
+  return [{
+    type: instructionType ?? InstructionType.SET,
+    definition,
+    field,
+    nodeID,
+  }];
+}
+
 export function compileInstructions(
   nodeID: NodeID,
   definitionOrDefinitions: ItemOrArray<Definition>,
@@ -105,7 +136,7 @@ export function compileInstructions(
 ): Instruction[] {
   // If an array, we compile an ADD instruction for each definition.
   if (Array.isArray(definitionOrDefinitions)) {
-    return compileDefaultArrayInstructions(
+    return compileDefaultNodeArrayInstructions(
       nodeID,
       definitionOrDefinitions,
       field,
@@ -114,28 +145,8 @@ export function compileInstructions(
   }
   // Otherwise, we use a set instruction using the defined values
   const { __instructions, ...definition } = definitionOrDefinitions;
-  return [{ type: instructionType ?? InstructionType.SET, definition, field, nodeID }];
+  return compileDefaultNodeInstructions(nodeID, definition, field, instructionType);
 }
-
-// export function shouldCompileInstructions(
-//   nodeID: NodeID,
-//   node: Maybe<ItemOrArray<tsm.Node>>,
-//   definition: ItemOrArray<Definition>,
-//   field: string,
-// ): Instruction[] {
-//   // If we have no node, we use specifically defined behaviour for SET and ADD
-//   if (!isDefined(node)) {
-//     return compileInstructions(nodeID, definition, field);
-//   }
-
-//   // If we have a node, and it is an array of nodes,
-//   // the default behaviour is to create ADD instructions
-//   if (Array.isArray(node)) {
-//     return compileInstructions(nodeID, definition, field);
-//   }
-
-//   return [];
-// }
 
 export function isDefined<T>(nodeOrNodes: Maybe<ItemOrArray<T>>): boolean {
   if (!nodeOrNodes) {
@@ -154,7 +165,15 @@ export function createOpaqueString<T extends OpaqueString<string>>(input: string
 }
 
 export function createNodeID(id = '', ...nextIDs: string[]): NodeID {
-  return createOpaqueString<NodeID>([id, ...nextIDs].join('.'));
+  let newId = id;
+  for (const nextID of nextIDs) {
+    if (Number.isInteger(Number(nextID))) {
+      newId += `[${nextID}]`;
+    } else {
+      newId += `.${nextID}`;
+    }
+  }
+  return createOpaqueString<NodeID>(newId.replace(/^\.+/, ''));
 }
 
 export function generateInstructions(
@@ -187,24 +206,42 @@ export function generateInstructions(
         // If no instructions, we compile using the default instruction rules
         if (!fieldDefinition.__instructions) {
           instructions.push(
-            ...compileDefaultArrayInstructions(nodeID, [fieldDefinition], fieldName),
+            ...compileDefaultNodeArrayInstructions(nodeID, [fieldDefinition], fieldName),
           );
           // TODO: we need to decide what to do after ^
-          continue;
-        }
-
-        if (fieldDefinition.__instructions.id) {
-          const data = (nodeValueOrValues as tsm.Node[]).map((node) =>
-            node.compilerNode
+        } else if (fieldDefinition.__instructions.id) {
+          const compiledQuery = jsonata(fieldDefinition.__instructions.id);
+          const nodes = (nodeValueOrValues as tsm.Node[]);
+          const foundNodeIndex = nodes.findIndex((node) =>
+            !!compiledQuery.evaluate(node.compilerNode)
           );
-          const result = jsonata(fieldDefinition.__instructions.id).evaluate(data);
-          if (!result) {
+          if (foundNodeIndex === -1) {
             instructions.push(
               ...compileInstructions(nodeID, [fieldDefinition], fieldName),
+            );
+          } else {
+            const nodeId = createNodeID(nodeID, fieldName, foundNodeIndex.toString());
+            instructions.push(
+              ...generateInstructions(nodes[foundNodeIndex], fieldDefinition, nodeId),
             );
           }
         }
       }
+    } else {
+      // If no instructions, we compile using the default instruction rules
+      // const fieldDefinition = fieldDefinitionOrDefinitions;
+
+      // if (fieldDefinition.__instructions.id) {
+      //   const data = (nodeValueOrValues as tsm.Node[]).map((node) =>
+      //     node.compilerNode
+      //   );
+      //   const result = jsonata(fieldDefinition.__instructions.id).evaluate(data);
+      //   if (!result) {
+      //     instructions.push(
+      //       ...compileInstructions(nodeID, [fieldDefinition], fieldName),
+      //     );
+      //   }
+      // }
     }
   }
   return instructions;

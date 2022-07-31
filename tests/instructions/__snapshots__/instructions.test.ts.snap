@@ -68,3 +68,16 @@ snapshot[`Instructions > ADD Instruction > should not define an ADD instruction 
 [
 ]
 `;
+
+snapshot[`Instructions > SET Instruction > should define an SET instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
+[
+  {
+    definition: {
+      kind: "VoidKeyword",
+    },
+    field: "type",
+    nodeID: "statements[0]",
+    type: "SET",
+  },
+]
+`;

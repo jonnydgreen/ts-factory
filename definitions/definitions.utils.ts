@@ -1,6 +1,11 @@
 import type { ts } from '../deps.ts';
 import type { Instructions } from '../instructions/instructions.type.ts';
-import type { ExpressionInput, MemberNameInput, StatementInput } from './definitions.ts';
+import type {
+  ExpressionInput,
+  MemberNameInput,
+  StatementInput,
+  TypeNodeInput,
+} from './definitions.ts';
 import type { LeadingTriviaInput } from './trivia/trivia.type.ts';
 
 export type MergeIntersections<I> = { [K in keyof I]: I[K] };
@@ -18,7 +23,7 @@ export type MapTSTypes<T> =
   T extends string ? string :
   T extends ts.Statement ? StatementInput :
   T extends string | ts.MemberName ? string | MemberNameInput :
-  // T extends ts.TypeNode ? TypeNodeInput :
+  T extends ts.TypeNode ? TypeNodeInput :
   T extends ts.Expression ? ExpressionInput :
   T extends ts.SyntaxKind ? ExpressionInput :
   unknown;

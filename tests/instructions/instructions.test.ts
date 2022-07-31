@@ -1,6 +1,5 @@
 import { ts, tsm } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
-import { InstructionType } from '../../instructions/instructions.type.ts';
 import { asserts, blocks } from '../../test.deps.ts';
 import { sanitiseInstructions, TestDefinition } from './instructions-tests.ts';
 
@@ -26,7 +25,7 @@ function createTestName(
 }
 
 blocks.describe('Instructions', () => {
-  blocks.describe(`${InstructionType[InstructionType.ADD]} Instruction`, () => {
+  blocks.describe(`ADD Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
@@ -135,6 +134,54 @@ blocks.describe('Instructions', () => {
                 text: 'hello',
               },
               parameters: [],
+            },
+          ],
+        },
+        sourceFileContents: `
+          export function hello() {}
+        `,
+      },
+    ];
+
+    for (const definition of definitions) {
+      blocks.it(definition.name, async (t) => {
+        // Arrange
+        const project = new tsm.Project();
+        const sourceFile = project.createSourceFile(
+          `${crypto.randomUUID()}.ts`,
+          definition.sourceFileContents,
+        );
+
+        // Act
+        const result = generateInstructions(sourceFile, definition.input);
+
+        // Assert
+        await asserts.assertSnapshot(t, sanitiseInstructions(result));
+      });
+    }
+  });
+
+  blocks.describe(`SET Instruction`, () => {
+    const definitions: TestDefinition[] = [
+      {
+        name: createTestName(
+          'should define an SET instruction if',
+          'the field is a node',
+          'the field node doesn\'t exist',
+          'no instructions are specified on the field definition',
+        ),
+        input: {
+          kind: ts.SyntaxKind.SourceFile,
+          statements: [
+            {
+              __instructions: {
+                id: 'name.text="hello"',
+              },
+              kind: ts.SyntaxKind.FunctionDeclaration,
+              parameters: [],
+              type: {
+                kind: ts.SyntaxKind.VoidKeyword,
+              },
             },
           ],
         },

@@ -2,7 +2,7 @@ import { Input } from '../../definitions/definitions.ts';
 import { ts } from '../../deps.ts';
 import { Instruction, InstructionType } from '../../instructions/instructions.type.ts';
 
-export interface TestDefinition<TBindings = unknown> {
+export interface TestDefinition {
   name: string;
   input: Input;
   sourceFileContents?: string;
