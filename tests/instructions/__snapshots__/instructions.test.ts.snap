@@ -69,6 +69,27 @@ snapshot[`Instructions > ADD Instruction > should not define an ADD instruction 
 ]
 `;
 
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes and the field is a nested definition 1`] = `
+[
+  {
+    definition: {
+      kind: "ExportKeyword",
+    },
+    field: "modifiers",
+    nodeID: "statements[0]",
+    type: "ADD",
+  },
+  {
+    definition: {
+      kind: "AsyncKeyword",
+    },
+    field: "modifiers",
+    nodeID: "statements[0]",
+    type: "ADD",
+  },
+]
+`;
+
 snapshot[`Instructions > SET Instruction > should define an SET instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
 [
   {

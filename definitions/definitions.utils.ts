@@ -6,6 +6,7 @@ import type {
   StatementInput,
   TypeNodeInput,
 } from './definitions.ts';
+import { ModifierInput } from './modifier/modifier.type.ts';
 import type { LeadingTriviaInput } from './trivia/trivia.type.ts';
 
 export type MergeIntersections<I> = { [K in keyof I]: I[K] };
@@ -26,6 +27,7 @@ export type MapTSTypes<T> =
   T extends ts.TypeNode ? TypeNodeInput :
   T extends ts.Expression ? ExpressionInput :
   T extends ts.SyntaxKind ? ExpressionInput :
+  T extends ts.Modifier ? ModifierInput :
   unknown;
 
 export type CreateInput<

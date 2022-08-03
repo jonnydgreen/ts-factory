@@ -141,6 +141,37 @@ blocks.describe('Instructions', () => {
           export function hello() {}
         `,
       },
+      {
+        name: createTestName(
+          'should define an ADD instruction if',
+          'the field is an array of nodes',
+          'the field is a nested definition',
+        ),
+        input: {
+          kind: ts.SyntaxKind.SourceFile,
+          statements: [
+            {
+              __instructions: {
+                id: 'name.text="hello"',
+              },
+              kind: ts.SyntaxKind.FunctionDeclaration,
+              name: {
+                kind: ts.SyntaxKind.Identifier,
+                // TODO: can we use bindings here when we compile a template?
+                text: 'hello',
+              },
+              modifiers: [
+                { kind: ts.SyntaxKind.ExportKeyword },
+                { kind: ts.SyntaxKind.AsyncKeyword },
+              ],
+              parameters: [],
+            },
+          ],
+        },
+        sourceFileContents: `
+          function hello() {}
+        `,
+      },
     ];
 
     for (const definition of definitions) {

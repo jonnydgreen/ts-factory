@@ -14,7 +14,7 @@ import { CreateInput } from '../definitions.utils.ts';
 export type FunctionDeclarationInput = CreateInput<
   ts.FunctionDeclaration,
   'parameters',
-  'name' | 'type'
+  'name' | 'type' | 'modifiers'
 >;
 // TODO: populate the rest
 // {
