@@ -28,12 +28,7 @@ blocks.describe.ignore('Instructions', () => {
               {
                 // TODO: is this too complex?
                 __instructions: {
-                  rules: [{
-                    conditions: {
-                      all: [{ fact: 'name', operator: 'equal', value: 'hello' }],
-                    },
-                    instruction: InstructionType.ADD,
-                  }],
+                  rules: [],
                 },
                 kind: ts.SyntaxKind.FunctionDeclaration,
                 parameters: [],

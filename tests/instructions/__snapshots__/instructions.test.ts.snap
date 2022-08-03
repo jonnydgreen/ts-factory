@@ -125,3 +125,23 @@ snapshot[`Instructions > SET Instruction > should not define an SET instruction 
 [
 ]
 `;
+
+snapshot[`Instructions > INSERT Instruction > should define an INSERT instruction if the field is an array of nodes, a rule evaluates to an INSERT instruction and a numerical index is defined for the INSERT position 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      name: {
+        kind: "Identifier",
+        text: "hello",
+      },
+      parameters: [
+      ],
+    },
+    field: "statements",
+    index: 0,
+    nodeID: "",
+    type: "INSERT",
+  },
+]
+`;

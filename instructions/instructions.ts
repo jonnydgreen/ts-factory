@@ -3,39 +3,13 @@ import {
   InstructionType,
   NodeID,
   OpaqueString,
+  SetInstruction,
 } from './instructions.type.ts';
 import { Definition } from '../definitions/definitions.ts';
 import { jsonata, ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
 import { StringUtils } from '../utils/utils.string.ts';
 import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
-
-export function astNodeToJSON<T>(node: tsm.Node): T {
-  const cache: unknown[] = [];
-  return JSON.parse(JSON.stringify(node.compilerNode, (key, value) => {
-    // Discard the following.
-    if (key === 'flags' || key === 'transformFlags' || key === 'modifierFlagsCache') {
-      return;
-    }
-
-    if (typeof value === 'object' && value !== null) {
-      // Duplicate reference found, discard key
-      if (cache.includes(value)) return;
-
-      cache.push(value);
-    }
-    return value;
-  }));
-}
-
-export function getInstructionType(
-  definition: Definition | Definition[],
-): InstructionType {
-  if (Array.isArray(definition)) {
-    return InstructionType.ADD;
-  }
-  return InstructionType.SET;
-}
 
 export function assertDefinitionKind(
   definition: Definition,
@@ -105,21 +79,36 @@ export function compileDefaultNodeArrayInstructions(
   definitions: Definition[],
   field: string,
   instructionType?: InstructionType,
+  index?: number,
 ): Instruction[] {
-  return definitions.map(({ __instructions, ...definitionItem }) => ({
-    type: instructionType ?? InstructionType.ADD,
-    definition: definitionItem,
-    field,
-    nodeID,
-  }));
+  return definitions.map(({ __instructions, ...definitionItem }) => {
+    if (instructionType === InstructionType.INSERT) {
+      return {
+        type: instructionType,
+        definition: definitionItem,
+        field,
+        nodeID,
+        // TODO: make this better
+        index: index as number,
+      };
+    }
+    return {
+      type: instructionType ?? InstructionType.ADD,
+      definition: definitionItem,
+      field,
+      nodeID,
+    };
+  });
 }
 
 export function compileDefaultNodeInstructions(
   nodeID: NodeID,
   definition: Definition,
   field: string,
-  instructionType?: InstructionType,
-): Instruction[] {
+  instructionType?: InstructionType.SET,
+): SetInstruction[] {
+  // TODO: assert the correct instruction type somewhere
+  // Don't want any casts if we can help it
   return [{
     type: instructionType ?? InstructionType.SET,
     definition,
@@ -133,6 +122,7 @@ export function compileInstructions(
   definitionOrDefinitions: ItemOrArray<Definition>,
   field: string,
   instructionType?: InstructionType,
+  index?: number,
 ): Instruction[] {
   // If an array, we compile an ADD instruction for each definition.
   if (Array.isArray(definitionOrDefinitions)) {
@@ -141,11 +131,17 @@ export function compileInstructions(
       definitionOrDefinitions,
       field,
       instructionType,
+      index,
     );
   }
   // Otherwise, we use a set instruction using the defined values
   const { __instructions, ...definition } = definitionOrDefinitions;
-  return compileDefaultNodeInstructions(nodeID, definition, field, instructionType);
+  return compileDefaultNodeInstructions(
+    nodeID,
+    definition,
+    field,
+    instructionType as InstructionType.SET,
+  );
 }
 
 export function isDefined<T>(nodeOrNodes: Maybe<ItemOrArray<T>>): boolean {
@@ -216,6 +212,7 @@ export function generateInstructions(
           // TODO: we need to decide what to do after ^
         } else if (fieldDefinition.__instructions.id) {
           const compiledQuery = jsonata(fieldDefinition.__instructions.id);
+          // TODO: assert here
           const nodes = (nodeValueOrValues as tsm.Node[]);
           const foundNodeIndex = nodes.findIndex((node) =>
             !!compiledQuery.evaluate(node.compilerNode)
@@ -229,6 +226,43 @@ export function generateInstructions(
             if (isDefinition(fieldDefinition)) {
               instructions.push(
                 ...generateInstructions(nodes[foundNodeIndex], fieldDefinition, nodeId),
+              );
+            }
+          }
+          // If rules are defined, we process accordingly
+          // At the moment, we do not process ID and rules at the same time
+          // because the behaviour is not yet defined.
+        }
+
+        if (fieldDefinition.__instructions?.rules) {
+          for (const rule of fieldDefinition.__instructions.rules) {
+            const compiledQuery = jsonata(rule.condition);
+            const nodes = (nodeValueOrValues as tsm.Node[]);
+            const ruleMatch = nodes.some((node) =>
+              !!compiledQuery.evaluate(node.compilerNode)
+            );
+            let index: Maybe<number>;
+            if (typeof rule.index === 'string') {
+              const result = Number(jsonata(rule.index).evaluate(nodes));
+              if (!Number.isInteger(result) || result >= nodes.length) {
+                throw new TypeError(
+                  `Invalid result, must be integer within the array length: ${result}`,
+                );
+              }
+              index = result;
+            } else {
+              index = rule.index;
+            }
+            // If a rule matches we process the results
+            if (ruleMatch) {
+              instructions.push(
+                ...compileInstructions(
+                  nodeID,
+                  [fieldDefinition],
+                  fieldName,
+                  rule.instruction,
+                  index,
+                ),
               );
             }
           }

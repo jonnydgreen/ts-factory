@@ -1,4 +1,4 @@
-import jsonata, {} from 'https://esm.sh/v89/jsonata@1.8.6?target=deno';
+import { jsonata } from '../deps.ts';
 
 const data = {
   'Account': {
@@ -75,4 +75,6 @@ const data = {
 };
 const expression = jsonata('$not($exists(Account.Order[Product[SKU = $sku]]))');
 const result = expression.evaluate(data, { sku: '040657863' });
+const ast = expression.ast();
 console.log(result);
+console.log(ast);

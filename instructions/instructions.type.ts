@@ -1,5 +1,4 @@
 import { Definition } from '../definitions/definitions.ts';
-import { JRE } from '../deps.ts';
 
 export type OpaqueString<TString extends string> = string & { __opaque: TString };
 
@@ -8,7 +7,7 @@ export type NodeID = OpaqueString<'NodeID'>;
 export enum InstructionType {
   SET = 'SET',
   ADD = 'ADD',
-  // INSERT,
+  INSERT = 'INSERT',
   // REPLACE,
   // TODO: support
   // REMOVE,
@@ -59,9 +58,13 @@ export interface SetInstruction {
  *  - Compile definition and apply to insert operator
  *  - Move on to the next instruction
  */
-// export interface InsertInstruction {
-//   type: InstructionType.INSERT;
-// }
+export interface InsertInstruction {
+  type: InstructionType.INSERT;
+  nodeID: NodeID;
+  field: string;
+  index: number;
+  definition: Definition;
+}
 
 // /**
 //  * Replace a field at a specific index within an array of fields on a parent node. E.g. new statement at position 1
@@ -80,15 +83,15 @@ export interface SetInstruction {
 
 export type Instruction =
   | AddInstruction
-  | SetInstruction;
-// TODO: support others
-// | InsertInstruction
+  | SetInstruction
+  | InsertInstruction;
 // | ReplaceInstruction
 // | RemoveInstruction;
 
 export interface InstructionRule {
-  conditions: JRE.TopLevelCondition;
   instruction: InstructionType;
+  condition: string;
+  index?: number | string;
 }
 
 export interface Instructions {
