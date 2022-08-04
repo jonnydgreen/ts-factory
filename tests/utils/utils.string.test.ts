@@ -1,4 +1,4 @@
-import { asserts, blocks } from '../../test.deps.ts';
+import { assertEquals, blocks } from '../../test.deps.ts';
 import { StringUtils } from '../../utils/utils.string.ts';
 
 blocks.describe('StringUtils', () => {
@@ -21,7 +21,7 @@ blocks.describe('StringUtils', () => {
       },
     ].forEach((definition) => {
       blocks.it(definition.test, () => {
-        asserts.assertEquals(
+        assertEquals(
           StringUtils.upperFirst(definition.input),
           definition.expected,
         );

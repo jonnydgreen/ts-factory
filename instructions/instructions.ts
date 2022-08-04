@@ -243,8 +243,10 @@ export function generateInstructions(
             );
             let index: Maybe<number>;
             if (typeof rule.index === 'string') {
-              const result = Number(jsonata(rule.index).evaluate(nodes));
-              if (!Number.isInteger(result) || result >= nodes.length) {
+              const result = Number(
+                jsonata(rule.index).evaluate(nodes.map((node) => node.compilerNode)),
+              );
+              if (!Number.isInteger(result) || result > nodes.length) {
                 throw new TypeError(
                   `Invalid result, must be integer within the array length: ${result}`,
                 );
@@ -292,20 +294,3 @@ export function generateInstructions(
   }
   return instructions;
 }
-
-// export function findNode(
-//   node: tsm.Node,
-//   fieldName: string,
-//   fieldDefinition: Definition,
-// ): Maybe<tsm.Node | tsm.Node[]> {
-//   if (!fieldDefinition.__instructions) {
-//     const getFieldFn =
-//       node[`get${StringUtils.upperFirst(fieldName)}` as keyof typeof node];
-//     if (typeof getFieldFn === 'function') {
-//       return (getFieldFn as () => Maybe<tsm.Node | tsm.Node[]>)();
-//     }
-//     return undefined;
-//   }
-
-//   return undefined;
-// }

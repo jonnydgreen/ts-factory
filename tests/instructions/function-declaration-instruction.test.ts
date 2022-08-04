@@ -1,7 +1,7 @@
 import { ts, tsm } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
-import { asserts, blocks } from '../../test.deps.ts';
+import { assertSnapshot, blocks } from '../../test.deps.ts';
 import { sanitiseInstructions, TestDefinition } from './instructions-tests.ts';
 
 blocks.describe.ignore('Instructions', () => {
@@ -48,7 +48,7 @@ blocks.describe.ignore('Instructions', () => {
           const result = generateInstructions(sourceFile, definition.input);
 
           // Assert
-          await asserts.assertSnapshot(t, sanitiseInstructions(result));
+          await assertSnapshot(t, sanitiseInstructions(result));
         });
       }
     });
