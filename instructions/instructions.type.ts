@@ -8,10 +8,13 @@ export enum InstructionType {
   SET = 'SET',
   ADD = 'ADD',
   INSERT = 'INSERT',
-  // REPLACE,
+  REPLACE = 'REPLACE',
   // TODO: support
-  // REMOVE,
+  // UNSET = 'UNSET',
+  // REMOVE = 'REMOVE',
 }
+
+// TODO: review descriptions
 
 /**
  * Add field to an array of fields on a parent node. E.g. statements
@@ -66,20 +69,24 @@ export interface InsertInstruction {
   definition: Definition;
 }
 
-// /**
-//  * Replace a field at a specific index within an array of fields on a parent node. E.g. new statement at position 1
-//  *
-//  * Flow:
-//  *  - Get Node by ID
-//  *  - Infer the kind of the Node
-//  *  - Find the replace operator associated with the defined node and field
-//  *  - Ensure the array is of length at least the set position
-//  *  - Compile definition and apply to insert operator
-//  *  - Move on to the next instruction
-//  */
-// export interface ReplaceInstruction {
-//   type: InstructionType.REPLACE;
-// }
+/**
+ * Replace a field at a specific index within an array of fields on a parent node. E.g. new statement at position 1
+ *
+ * Flow:
+ *  - Get Node by ID
+ *  - Infer the kind of the Node
+ *  - Find the replace operator associated with the defined node and field
+ *  - Ensure the array is of length at least the set position
+ *  - Compile definition and apply to insert operator
+ *  - Move on to the next instruction
+ */
+export interface ReplaceInstruction {
+  type: InstructionType.REPLACE;
+  nodeID: NodeID;
+  field: string;
+  index: number;
+  definition: Definition;
+}
 
 export type Instruction =
   | AddInstruction

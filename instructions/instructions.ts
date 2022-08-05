@@ -82,22 +82,27 @@ export function compileDefaultNodeArrayInstructions(
   index?: number,
 ): Instruction[] {
   return definitions.map(({ __instructions, ...definitionItem }) => {
-    if (instructionType === InstructionType.INSERT) {
-      return {
-        type: instructionType,
-        definition: definitionItem,
-        field,
-        nodeID,
-        // TODO: make this better
-        index: index as number,
-      };
+    switch (instructionType) {
+      case InstructionType.INSERT:
+      case InstructionType.REPLACE: {
+        return {
+          type: instructionType,
+          definition: definitionItem,
+          field,
+          nodeID,
+          // TODO: make this better
+          index: index as number,
+        } as Instruction;
+      }
+      default: {
+        return {
+          type: instructionType ?? InstructionType.ADD,
+          definition: definitionItem,
+          field,
+          nodeID,
+        };
+      }
     }
-    return {
-      type: instructionType ?? InstructionType.ADD,
-      definition: definitionItem,
-      field,
-      nodeID,
-    };
   });
 }
 
@@ -243,12 +248,19 @@ export function generateInstructions(
             );
             let index: Maybe<number>;
             if (typeof rule.index === 'string') {
+              // TODO: error for rule index defined with SET/ADD etc
               const result = Number(
                 jsonata(rule.index).evaluate(nodes.map((node) => node.compilerNode)),
               );
               if (!Number.isInteger(result) || result > nodes.length) {
                 throw new TypeError(
-                  `Invalid result, must be integer within the array length: ${result}`,
+                  `Invalid index for ${rule.instruction}, must be integer less than or equal to the array length (${nodes.length}); got ${result}`,
+                );
+              } else if (
+                result === nodes.length && rule.instruction === InstructionType.REPLACE
+              ) {
+                throw new TypeError(
+                  `Invalid index for ${rule.instruction}; must be a valid array index integer; got ${result}`,
                 );
               }
               index = result;

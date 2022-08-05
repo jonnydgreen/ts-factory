@@ -1,0 +1,46 @@
+export const snapshot = {};
+
+snapshot[`Instructions > REPLACE Instruction > should define an REPLACE instruction if the field is an array of nodes, a rule evaluates to an REPLACE instruction and a numerical index is defined for the REPLACE position 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      name: {
+        kind: "Identifier",
+        text: "foo",
+      },
+      parameters: [
+      ],
+    },
+    field: "statements",
+    index: 0,
+    nodeID: "",
+    type: "REPLACE",
+  },
+]
+`;
+
+snapshot[`Instructions > REPLACE Instruction > should define an REPLACE instruction if the field is an array of nodes, a rule evaluates to an REPLACE instruction and a string index is evaluated to an integer for the REPLACE position 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      name: {
+        kind: "Identifier",
+        text: "foo",
+      },
+      parameters: [
+      ],
+    },
+    field: "statements",
+    index: 0,
+    nodeID: "",
+    type: "REPLACE",
+  },
+]
+`;
+
+snapshot[`Instructions > REPLACE Instruction > should not define an REPLACE instruction if the field is an array of nodes and the rules does not evaluate to an instruction 1`] = `
+[
+]
+`;
