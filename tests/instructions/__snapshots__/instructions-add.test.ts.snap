@@ -1,0 +1,91 @@
+export const snapshot = {};
+
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes, the field nodes don't exist and no instructions are specified on the field definition 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      parameters: [
+      ],
+    },
+    field: "statements",
+    nodeID: "",
+    type: "ADD",
+  },
+]
+`;
+
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes, the field nodes don't exist and instructions are specified on the field definition 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      parameters: [
+      ],
+    },
+    field: "statements",
+    nodeID: "",
+    type: "ADD",
+  },
+]
+`;
+
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes, the field nodes exist and no instructions are specified on the field definition 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      parameters: [
+      ],
+    },
+    field: "statements",
+    nodeID: "",
+    type: "ADD",
+  },
+]
+`;
+
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes and the field node is not found using the defined instruction ID 1`] = `
+[
+  {
+    definition: {
+      kind: "FunctionDeclaration",
+      name: {
+        kind: "Identifier",
+        text: "hello",
+      },
+      parameters: [
+      ],
+    },
+    field: "statements",
+    nodeID: "",
+    type: "ADD",
+  },
+]
+`;
+
+snapshot[`Instructions > ADD Instruction > should not define an ADD instruction if the field is an array of nodes and the field node is found using the defined instruction ID 1`] = `
+[
+]
+`;
+
+snapshot[`Instructions > ADD Instruction > should define an ADD instruction if the field is an array of nodes and the field is a nested definition 1`] = `
+[
+  {
+    definition: {
+      kind: "ExportKeyword",
+    },
+    field: "modifiers",
+    nodeID: "statements[0]",
+    type: "ADD",
+  },
+  {
+    definition: {
+      kind: "AsyncKeyword",
+    },
+    field: "modifiers",
+    nodeID: "statements[0]",
+    type: "ADD",
+  },
+]
+`;

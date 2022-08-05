@@ -2,7 +2,7 @@ import { ts, tsm } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
-import { sanitiseInstructions, TestDefinition } from './instructions-tests.ts';
+import { sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
 blocks.describe.ignore('Instructions', () => {
   blocks.describe(InstructionType[InstructionType.ADD], () => {
