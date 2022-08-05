@@ -57,7 +57,52 @@
   "kind": 305, // SourceFile
   "statements": [{
     "kind": 256, // FunctionDeclaration
-    "__operations": {
+    "__instructions": {
+      // Used to determine whether we should add/set
+      // if the rule isn't matched
+      "id": "name[escapedText='hello']"
+    },
+    "name": {
+      "kind": 79, // Identifier
+      "text": "hello"
+    },
+    "modifiers": [
+      { "kind": 93 } // ExportKeyword
+    ],
+    "body": { "statements": [] }
+  }]
+}
+```
+
+## REPLACE instruction if rule condition for REPLACE matches
+
+**AST:**
+
+```jsonc
+{
+  "kind": 305, // SourceFile
+  "statements": [{
+    "kind": 256, // FunctionDeclaration
+    "name": {
+      "kind": 79, // Identifier
+      "text": "foo"
+    },
+    "modifiers": [
+      { "kind": 93 } // ExportKeyword
+    ],
+    "body": { "statements": [] }
+  }]
+}
+```
+
+**Input:**
+
+```jsonc
+{
+  "kind": 305, // SourceFile
+  "statements": [{
+    "kind": 256, // FunctionDeclaration
+    "__instructions": {
       // Used to determine whether we should add/set
       // if the rule isn't matched
       "id": "name[escapedText='hello']"
