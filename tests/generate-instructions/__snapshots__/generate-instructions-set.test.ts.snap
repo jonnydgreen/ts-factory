@@ -1,0 +1,37 @@
+export const snapshot = {};
+
+snapshot[`Generate Instructions > SET Instruction > should generate an SET instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
+[
+  {
+    definition: {
+      kind: "VoidKeyword",
+    },
+    field: "type",
+    path: "statements[0]",
+    type: "SET",
+  },
+]
+`;
+
+snapshot[`Generate Instructions > SET Instruction > should generate an SET instruction if the field is a node and the field node is not found using the defined instruction ID 1`] = `
+[
+  {
+    definition: {
+      kind: "VoidKeyword",
+    },
+    field: "type",
+    path: "statements[0]",
+    type: "SET",
+  },
+]
+`;
+
+snapshot[`Generate Instructions > SET Instruction > should not define an SET instruction if the field is a node, the field node exists and no instructions are specified on the field definition 1`] = `
+[
+]
+`;
+
+snapshot[`Generate Instructions > SET Instruction > should not define an SET instruction if the field is a node and the field node is found using the defined instruction ID 1`] = `
+[
+]
+`;

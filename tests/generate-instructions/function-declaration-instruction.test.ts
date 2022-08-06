@@ -4,7 +4,7 @@ import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
 import { sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe.ignore('Instructions', () => {
+blocks.describe.ignore('Generate Instructions', () => {
   blocks.describe(InstructionType[InstructionType.ADD], () => {
     blocks.describe(ts.SyntaxKind[ts.SyntaxKind.FunctionDeclaration], () => {
       const definitions: TestDefinition[] = [

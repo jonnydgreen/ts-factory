@@ -4,131 +4,123 @@ import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe('Instructions', () => {
-  blocks.describe(`REMOVE Instruction`, () => {
+blocks.describe('Generate Instructions', () => {
+  blocks.describe(`INSERT Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should generate an INSERT instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
-          'no index is defined for the REMOVE position',
+          'a rule evaluates to an INSERT instruction',
+          'a numerical index is defined for the INSERT position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
           statements: [
             {
               __instructions: {
-                id: 'name.text="hello"',
                 rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: 'modifiers.kind=93',
-                  field: 'modifiers',
+                  instruction: InstructionType.INSERT,
+                  condition: 'name.text="hello"',
+                  index: 0,
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
+                text: 'hello',
               },
               parameters: [],
             },
           ],
         },
         sourceFileContents: `
-          export function hello() {}
+          function hello() {}
         `,
       },
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should generate an INSERT instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
-          'a numerical index is defined for the REMOVE position',
+          'a rule evaluates to an INSERT instruction',
+          'a string index is evaluated to an integer for the INSERT position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
           statements: [
             {
               __instructions: {
-                id: 'name.text="hello"',
                 rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: '$exists(modifiers[kind=93])',
-                  field: 'modifiers',
-                  index: 1,
+                  instruction: InstructionType.INSERT,
+                  condition: 'name.text="hello"',
+                  index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i })',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
+                text: 'hello',
               },
               parameters: [],
             },
           ],
         },
         sourceFileContents: `
-          export async function hello() {}
+          function hello() {}
         `,
       },
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should not define an INSERT instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
-          'a string index is evaluated to an integer for the REMOVE position',
+          'the rule does not evaluate to an instruction',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
           statements: [
             {
               __instructions: {
-                id: 'name.text="hello"',
                 rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: '$exists(modifiers[kind=93])',
-                  field: 'modifiers',
-                  index:
-                    '$ ~> $map(function($v, $i) { $exists($v.modifiers[kind = 93]) ? $i })',
+                  instruction: InstructionType.INSERT,
+                  condition: 'name.text="does-not-exist"',
+                  index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i })',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
+                text: 'hello',
               },
               parameters: [],
             },
           ],
         },
         sourceFileContents: `
-          export function hello() {}
+          function hello() {}
         `,
       },
       {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
-          'a string index is evaluated to an non-integer for the REMOVE position',
+          'a rule evaluates to an INSERT instruction',
+          'a string index is evaluated to a non-integer',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
           statements: [
             {
               __instructions: {
-                id: 'name.text="hello"',
                 rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: '$exists(modifiers[kind=93])',
-                  index: '"hello"',
+                  instruction: InstructionType.INSERT,
+                  condition: 'name.text="hello"',
+                  index: 'name.text',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
+                text: 'hello',
               },
               parameters: [],
             },
@@ -137,54 +129,17 @@ blocks.describe('Instructions', () => {
         error: {
           prototype: TypeError,
           message:
-            'Invalid index for REMOVE, must be integer less than or equal to the array length (1); got NaN',
+            'Invalid index for INSERT, must be integer less than or equal to the array length (1); got NaN',
         },
         sourceFileContents: `
-          export function hello() {}
+          function hello() {}
         `,
       },
       {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
-          'a string index is evaluated to an integer equal to the length of the array of nodes',
-        ),
-        input: {
-          kind: ts.SyntaxKind.SourceFile,
-          statements: [
-            {
-              __instructions: {
-                id: 'name.text="hello"',
-                rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: '$exists(modifiers[kind=93])',
-                  index: '1',
-                }],
-              },
-              kind: ts.SyntaxKind.FunctionDeclaration,
-              name: {
-                kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
-              },
-              parameters: [],
-            },
-          ],
-        },
-        error: {
-          prototype: TypeError,
-          message:
-            'Invalid index for REMOVE; must be a valid array index integer; got 1',
-        },
-        sourceFileContents: `
-          export function hello() {}
-        `,
-      },
-      {
-        name: createTestName(
-          'should throw an error if',
-          'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an INSERT instruction',
           'a string index is evaluated to an integer greater than the length of the array of nodes',
         ),
         input: {
@@ -192,17 +147,17 @@ blocks.describe('Instructions', () => {
           statements: [
             {
               __instructions: {
-                id: 'name.text="hello"',
                 rules: [{
-                  instruction: InstructionType.REMOVE,
-                  condition: '$exists(modifiers[kind=93])',
-                  index: '6',
+                  instruction: InstructionType.INSERT,
+                  condition: 'name.text="hello"',
+                  index:
+                    '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i + 6 })',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'foo',
+                text: 'hello',
               },
               parameters: [],
             },
@@ -211,10 +166,10 @@ blocks.describe('Instructions', () => {
         error: {
           prototype: TypeError,
           message:
-            'Invalid index for REMOVE, must be integer less than or equal to the array length (1); got 6',
+            'Invalid index for INSERT, must be integer less than or equal to the array length (1); got 6',
         },
         sourceFileContents: `
-          export function hello() {}
+          function hello() {}
         `,
       },
     ];

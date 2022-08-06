@@ -4,15 +4,15 @@ import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe('Instructions', () => {
-  blocks.describe(`INSERT Instruction`, () => {
+blocks.describe('Generate Instructions', () => {
+  blocks.describe(`REPLACE Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an INSERT instruction if',
+          'should generate an REPLACE instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
-          'a numerical index is defined for the INSERT position',
+          'a rule evaluates to an REPLACE instruction',
+          'a numerical index is defined for the REPLACE position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -20,7 +20,7 @@ blocks.describe('Instructions', () => {
             {
               __instructions: {
                 rules: [{
-                  instruction: InstructionType.INSERT,
+                  instruction: InstructionType.REPLACE,
                   condition: 'name.text="hello"',
                   index: 0,
                 }],
@@ -28,7 +28,7 @@ blocks.describe('Instructions', () => {
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'hello',
+                text: 'foo',
               },
               parameters: [],
             },
@@ -40,10 +40,10 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an INSERT instruction if',
+          'should generate an REPLACE instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
-          'a string index is evaluated to an integer for the INSERT position',
+          'a rule evaluates to an REPLACE instruction',
+          'a string index is evaluated to an integer for the REPLACE position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -51,15 +51,16 @@ blocks.describe('Instructions', () => {
             {
               __instructions: {
                 rules: [{
-                  instruction: InstructionType.INSERT,
+                  instruction: InstructionType.REPLACE,
                   condition: 'name.text="hello"',
+                  // TODO: maybe we can create a function for this
                   index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i })',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'hello',
+                text: 'foo',
               },
               parameters: [],
             },
@@ -71,7 +72,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should not define an INSERT instruction if',
+          'should not define an REPLACE instruction if',
           'the field is an array of nodes',
           'the rule does not evaluate to an instruction',
         ),
@@ -81,7 +82,7 @@ blocks.describe('Instructions', () => {
             {
               __instructions: {
                 rules: [{
-                  instruction: InstructionType.INSERT,
+                  instruction: InstructionType.REPLACE,
                   condition: 'name.text="does-not-exist"',
                   index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i })',
                 }],
@@ -89,7 +90,7 @@ blocks.describe('Instructions', () => {
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'hello',
+                text: 'foo',
               },
               parameters: [],
             },
@@ -103,7 +104,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
+          'a rule evaluates to an REPLACE instruction',
           'a string index is evaluated to a non-integer',
         ),
         input: {
@@ -112,7 +113,7 @@ blocks.describe('Instructions', () => {
             {
               __instructions: {
                 rules: [{
-                  instruction: InstructionType.INSERT,
+                  instruction: InstructionType.REPLACE,
                   condition: 'name.text="hello"',
                   index: 'name.text',
                 }],
@@ -120,7 +121,7 @@ blocks.describe('Instructions', () => {
               kind: ts.SyntaxKind.FunctionDeclaration,
               name: {
                 kind: ts.SyntaxKind.Identifier,
-                text: 'hello',
+                text: 'foo',
               },
               parameters: [],
             },
@@ -129,7 +130,7 @@ blocks.describe('Instructions', () => {
         error: {
           prototype: TypeError,
           message:
-            'Invalid index for INSERT, must be integer less than or equal to the array length (1); got NaN',
+            'Invalid index for REPLACE, must be integer less than or equal to the array length (1); got NaN',
         },
         sourceFileContents: `
           function hello() {}
@@ -139,7 +140,43 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
+          'a rule evaluates to an REPLACE instruction',
+          'a string index is evaluated to an integer equal to the length of the array of nodes',
+        ),
+        input: {
+          kind: ts.SyntaxKind.SourceFile,
+          statements: [
+            {
+              __instructions: {
+                rules: [{
+                  instruction: InstructionType.REPLACE,
+                  condition: 'name.text="hello"',
+                  index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? 1 })',
+                }],
+              },
+              kind: ts.SyntaxKind.FunctionDeclaration,
+              name: {
+                kind: ts.SyntaxKind.Identifier,
+                text: 'foo',
+              },
+              parameters: [],
+            },
+          ],
+        },
+        error: {
+          prototype: TypeError,
+          message:
+            'Invalid index for REPLACE; must be a valid array index integer; got 1',
+        },
+        sourceFileContents: `
+          function hello() {}
+        `,
+      },
+      {
+        name: createTestName(
+          'should throw an error if',
+          'the field is an array of nodes',
+          'a rule evaluates to an REPLACE instruction',
           'a string index is evaluated to an integer greater than the length of the array of nodes',
         ),
         input: {
@@ -148,7 +185,7 @@ blocks.describe('Instructions', () => {
             {
               __instructions: {
                 rules: [{
-                  instruction: InstructionType.INSERT,
+                  instruction: InstructionType.REPLACE,
                   condition: 'name.text="hello"',
                   index:
                     '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i + 6 })',
@@ -166,7 +203,7 @@ blocks.describe('Instructions', () => {
         error: {
           prototype: TypeError,
           message:
-            'Invalid index for INSERT, must be integer less than or equal to the array length (1); got 6',
+            'Invalid index for REPLACE, must be integer less than or equal to the array length (1); got 6',
         },
         sourceFileContents: `
           function hello() {}

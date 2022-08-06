@@ -8,7 +8,7 @@ import {
 import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertThrows, blocks } from '../../test.deps.ts';
 
-blocks.describe('Instructions', () => {
+blocks.describe('Generate Instructions', () => {
   blocks.describe('generateInstructions', () => {
     blocks.it(
       'should throw an error if the definition kind does not match the node kind',

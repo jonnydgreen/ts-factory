@@ -3,12 +3,12 @@ import { generateInstructions } from '../../instructions/instructions.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe('Instructions', () => {
+blocks.describe('Generate Instructions', () => {
   blocks.describe(`ADD Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an ADD instruction if',
+          'should generate an ADD instruction if',
           'the field is an array of nodes',
           'the field nodes don\'t exist',
           'no instructions are specified on the field definition',
@@ -25,7 +25,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an ADD instruction if',
+          'should generate an ADD instruction if',
           'the field is an array of nodes',
           'the field nodes don\'t exist',
           'instructions are specified on the field definition',
@@ -46,7 +46,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an ADD instruction if',
+          'should generate an ADD instruction if',
           'the field is an array of nodes',
           'the field nodes exist',
           'no instructions are specified on the field definition',
@@ -66,7 +66,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an ADD instruction if',
+          'should generate an ADD instruction if',
           'the field is an array of nodes',
           'the field node is not found using the defined instruction ID',
         ),
@@ -122,7 +122,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an ADD instruction if',
+          'should generate an ADD instruction if',
           'the field is an array of nodes',
           'the field is a nested definition',
         ),

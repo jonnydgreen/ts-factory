@@ -3,12 +3,12 @@ import { generateInstructions } from '../../instructions/instructions.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe('Instructions', () => {
+blocks.describe('Generate Instructions', () => {
   blocks.describe(`SET Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an SET instruction if',
+          'should generate an SET instruction if',
           'the field is a node',
           'the field node doesn\'t exist',
           'no instructions are specified on the field definition',
@@ -34,7 +34,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an SET instruction if',
+          'should generate an SET instruction if',
           'the field is a node',
           'the field node is not found using the defined instruction ID',
         ),

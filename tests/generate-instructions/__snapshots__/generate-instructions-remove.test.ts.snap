@@ -1,0 +1,34 @@
+export const snapshot = {};
+
+snapshot[`Generate Instructions > REMOVE Instruction > should generate an REMOVE instruction if the field is an array of nodes, a rule evaluates to an REMOVE instruction and no index is defined for the REMOVE position 1`] = `
+[
+  {
+    field: "modifiers",
+    index: 0,
+    path: "statements[0]",
+    type: "REMOVE",
+  },
+]
+`;
+
+snapshot[`Generate Instructions > REMOVE Instruction > should generate an REMOVE instruction if the field is an array of nodes, a rule evaluates to an REMOVE instruction and a numerical index is defined for the REMOVE position 1`] = `
+[
+  {
+    field: "modifiers",
+    index: 1,
+    path: "statements[0]",
+    type: "REMOVE",
+  },
+]
+`;
+
+snapshot[`Generate Instructions > REMOVE Instruction > should generate an REMOVE instruction if the field is an array of nodes, a rule evaluates to an REMOVE instruction and a string index is evaluated to an integer for the REMOVE position 1`] = `
+[
+  {
+    field: "modifiers",
+    index: 0,
+    path: "statements[0]",
+    type: "REMOVE",
+  },
+]
+`;

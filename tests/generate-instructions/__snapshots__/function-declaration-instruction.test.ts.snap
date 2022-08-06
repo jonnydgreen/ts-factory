@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`Instructions > ADD > FunctionDeclaration > should handle a basic function declaration 1`] = `
+snapshot[`Generate Instructions > ADD > FunctionDeclaration > should handle a basic function declaration 1`] = `
 [
   {
     definition: [

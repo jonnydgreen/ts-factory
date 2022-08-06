@@ -4,12 +4,12 @@ import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
-blocks.describe('Instructions', () => {
+blocks.describe('Generate Instructions', () => {
   blocks.describe(`UNSET Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an UNSET instruction if',
+          'should generate an UNSET instruction if',
           'the field is a node',
           'a rule evaluates to an UNSET instruction',
         ),
