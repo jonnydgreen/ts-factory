@@ -2,15 +2,15 @@ import { Definition } from '../definitions/definitions.ts';
 
 export type OpaqueString<TString extends string> = string & { __opaque: TString };
 
-export type NodeID = OpaqueString<'NodeID'>;
+export type Path = OpaqueString<'Path'>;
 
 export enum InstructionType {
   SET = 'SET',
   ADD = 'ADD',
   INSERT = 'INSERT',
   REPLACE = 'REPLACE',
+  UNSET = 'UNSET',
   // TODO: support
-  // UNSET = 'UNSET',
   // REMOVE = 'REMOVE',
 }
 
@@ -29,7 +29,7 @@ export enum InstructionType {
 export interface AddInstruction {
   type: InstructionType.ADD;
   field: string;
-  nodeID?: NodeID;
+  path?: Path;
   definition: Definition;
 }
 
@@ -45,7 +45,7 @@ export interface AddInstruction {
  */
 export interface SetInstruction {
   type: InstructionType.SET;
-  nodeID: NodeID;
+  path: Path;
   field: string;
   definition: Definition;
 }
@@ -63,7 +63,7 @@ export interface SetInstruction {
  */
 export interface InsertInstruction {
   type: InstructionType.INSERT;
-  nodeID: NodeID;
+  path: Path;
   field: string;
   index: number;
   definition: Definition;
@@ -82,23 +82,42 @@ export interface InsertInstruction {
  */
 export interface ReplaceInstruction {
   type: InstructionType.REPLACE;
-  nodeID: NodeID;
+  path: Path;
   field: string;
   index: number;
   definition: Definition;
 }
 
+/**
+ * Unset a field on node. E.g. type on a function declaration
+ *
+ * Flow:
+ *  - Get Node by ID
+ *  - Infer the kind of the Node
+ *  - Find the replace operator associated with the defined node and field
+ *  - Ensure the array is of length at least the set position
+ *  - Compile definition and apply to insert operator
+ *  - Move on to the next instruction
+ */
+export interface UnsetInstruction {
+  type: InstructionType.UNSET;
+  path: Path;
+  field: string;
+}
+
 export type Instruction =
   | AddInstruction
   | SetInstruction
-  | InsertInstruction;
-// | ReplaceInstruction
+  | InsertInstruction
+  | ReplaceInstruction
+  | UnsetInstruction;
 // | RemoveInstruction;
 
 export interface InstructionRule {
   instruction: InstructionType;
   condition: string;
   index?: number | string;
+  field?: string;
 }
 
 export interface Instructions {

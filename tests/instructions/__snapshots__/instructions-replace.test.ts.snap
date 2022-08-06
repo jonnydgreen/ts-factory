@@ -14,7 +14,7 @@ snapshot[`Instructions > REPLACE Instruction > should define an REPLACE instruct
     },
     field: "statements",
     index: 0,
-    nodeID: "",
+    path: "",
     type: "REPLACE",
   },
 ]
@@ -34,7 +34,7 @@ snapshot[`Instructions > REPLACE Instruction > should define an REPLACE instruct
     },
     field: "statements",
     index: 0,
-    nodeID: "",
+    path: "",
     type: "REPLACE",
   },
 ]

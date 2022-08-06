@@ -9,7 +9,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       ],
     },
     field: "statements",
-    nodeID: "",
+    path: "",
     type: "ADD",
   },
 ]
@@ -24,7 +24,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       ],
     },
     field: "statements",
-    nodeID: "",
+    path: "",
     type: "ADD",
   },
 ]
@@ -39,7 +39,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       ],
     },
     field: "statements",
-    nodeID: "",
+    path: "",
     type: "ADD",
   },
 ]
@@ -58,7 +58,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       ],
     },
     field: "statements",
-    nodeID: "",
+    path: "",
     type: "ADD",
   },
 ]
@@ -76,7 +76,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       kind: "ExportKeyword",
     },
     field: "modifiers",
-    nodeID: "statements[0]",
+    path: "statements[0]",
     type: "ADD",
   },
   {
@@ -84,7 +84,7 @@ snapshot[`Instructions > ADD Instruction > should define an ADD instruction if t
       kind: "AsyncKeyword",
     },
     field: "modifiers",
-    nodeID: "statements[0]",
+    path: "statements[0]",
     type: "ADD",
   },
 ]

@@ -1,28 +1,17 @@
 import {
   Instruction,
   InstructionType,
-  NodeID,
   OpaqueString,
+  Path,
   SetInstruction,
+  UnsetInstruction,
 } from './instructions.type.ts';
 import { Definition } from '../definitions/definitions.ts';
 import { jsonata, ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
 import { StringUtils } from '../utils/utils.string.ts';
 import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
-
-export function assertDefinitionKind(
-  definition: Definition,
-  kind: tsm.ts.SyntaxKind,
-): asserts definition is Extract<Definition, { kind: typeof kind }> {
-  if (definition.kind !== kind) {
-    throw new TypeError(
-      `Definition of kind '${
-        tsm.ts.SyntaxKind[definition.kind]
-      }' does not match expected Node kind '${tsm.SyntaxKind[kind]}'`,
-    );
-  }
-}
+import { assertDefinitionKind, assertNever } from '../utils/utils.assert.ts';
 
 export function getDefinitionEntries(
   definition: Definition,
@@ -75,7 +64,7 @@ export function getFieldNodeByDefinitionKey(
 }
 
 export function compileDefaultNodeArrayInstructions(
-  nodeID: NodeID,
+  path: Path,
   definitions: Definition[],
   field: string,
   instructionType?: InstructionType,
@@ -89,17 +78,17 @@ export function compileDefaultNodeArrayInstructions(
           type: instructionType,
           definition: definitionItem,
           field,
-          nodeID,
+          path,
           // TODO: make this better
           index: index as number,
-        } as Instruction;
+        };
       }
       default: {
         return {
           type: instructionType ?? InstructionType.ADD,
           definition: definitionItem,
           field,
-          nodeID,
+          path,
         };
       }
     }
@@ -107,24 +96,39 @@ export function compileDefaultNodeArrayInstructions(
 }
 
 export function compileDefaultNodeInstructions(
-  nodeID: NodeID,
-  definition: Definition,
+  path: Path,
+  definitionWithInstructions: Maybe<Definition>,
   field: string,
-  instructionType?: InstructionType.SET,
-): SetInstruction[] {
+  instructionType: InstructionType.SET | InstructionType.UNSET = InstructionType.SET,
+): (SetInstruction | UnsetInstruction)[] {
+  switch (instructionType) {
+    case InstructionType.SET: {
+      // TODO: check that definition is defined
+      const { __instructions, ...definition } = definitionWithInstructions as Definition;
+      return [{
+        type: instructionType,
+        definition,
+        field,
+        path,
+      }];
+    }
+    case InstructionType.UNSET: {
+      return [{
+        type: instructionType,
+        field,
+        path,
+      }];
+    }
+    default: {
+      assertNever(instructionType);
+    }
+  }
   // TODO: assert the correct instruction type somewhere
-  // Don't want any casts if we can help it
-  return [{
-    type: instructionType ?? InstructionType.SET,
-    definition,
-    field,
-    nodeID,
-  }];
 }
 
 export function compileInstructions(
-  nodeID: NodeID,
-  definitionOrDefinitions: ItemOrArray<Definition>,
+  path: Path,
+  definitionOrDefinitions: ItemOrArray<Maybe<Definition>>,
   field: string,
   instructionType?: InstructionType,
   index?: number,
@@ -132,20 +136,20 @@ export function compileInstructions(
   // If an array, we compile an ADD instruction for each definition.
   if (Array.isArray(definitionOrDefinitions)) {
     return compileDefaultNodeArrayInstructions(
-      nodeID,
-      definitionOrDefinitions,
+      path,
+      // TODO: assert that is the case
+      definitionOrDefinitions as Definition[],
       field,
       instructionType,
       index,
     );
   }
   // Otherwise, we use a set instruction using the defined values
-  const { __instructions, ...definition } = definitionOrDefinitions;
   return compileDefaultNodeInstructions(
-    nodeID,
-    definition,
+    path,
+    definitionOrDefinitions,
     field,
-    instructionType as InstructionType.SET,
+    instructionType as InstructionType.SET | InstructionType.UNSET,
   );
 }
 
@@ -165,7 +169,7 @@ export function createOpaqueString<T extends OpaqueString<string>>(input: string
   return input as T;
 }
 
-export function createNodeID(id = '', ...nextIDs: string[]): NodeID {
+export function createPath(id = '', ...nextIDs: string[]): Path {
   let newId = id;
   for (const nextID of nextIDs) {
     if (Number.isInteger(Number(nextID))) {
@@ -174,7 +178,7 @@ export function createNodeID(id = '', ...nextIDs: string[]): NodeID {
       newId += `.${nextID}`;
     }
   }
-  return createOpaqueString<NodeID>(newId.replace(/^\.+/, ''));
+  return createOpaqueString<Path>(newId.replace(/^\.+/, ''));
 }
 
 export function isDefinition(definition: unknown): definition is Definition {
@@ -185,7 +189,7 @@ export function isDefinition(definition: unknown): definition is Definition {
 export function generateInstructions(
   node: tsm.Node,
   definition: Definition,
-  nodeID: NodeID = createNodeID(),
+  path: Path = createPath(),
 ): Instruction[] {
   assertDefinitionKind(definition, node.getKind());
 
@@ -199,7 +203,7 @@ export function generateInstructions(
     // If no node or nodes found, we can immediately build an instruction
     if (!isDefined(nodeValueOrValues)) {
       instructions.push(
-        ...compileInstructions(nodeID, fieldDefinitionOrDefinitions, fieldName),
+        ...compileInstructions(path, fieldDefinitionOrDefinitions, fieldName),
       );
       continue;
     }
@@ -212,7 +216,7 @@ export function generateInstructions(
         // If no instructions, we compile using the default instruction rules
         if (!fieldDefinition.__instructions) {
           instructions.push(
-            ...compileDefaultNodeArrayInstructions(nodeID, [fieldDefinition], fieldName),
+            ...compileDefaultNodeArrayInstructions(path, [fieldDefinition], fieldName),
           );
           // TODO: we need to decide what to do after ^
         } else if (fieldDefinition.__instructions.id) {
@@ -224,13 +228,17 @@ export function generateInstructions(
           );
           if (foundNodeIndex === -1) {
             instructions.push(
-              ...compileInstructions(nodeID, [fieldDefinition], fieldName),
+              ...compileInstructions(path, [fieldDefinition], fieldName),
             );
           } else {
-            const nodeId = createNodeID(nodeID, fieldName, foundNodeIndex.toString());
+            const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
             if (isDefinition(fieldDefinition)) {
               instructions.push(
-                ...generateInstructions(nodes[foundNodeIndex], fieldDefinition, nodeId),
+                ...generateInstructions(
+                  nodes[foundNodeIndex],
+                  fieldDefinition,
+                  nextPath,
+                ),
               );
             }
           }
@@ -243,7 +251,7 @@ export function generateInstructions(
           for (const rule of fieldDefinition.__instructions.rules) {
             const compiledQuery = jsonata(rule.condition);
             const nodes = (nodeValueOrValues as tsm.Node[]);
-            const ruleMatch = nodes.some((node) =>
+            const foundNodeIndex = nodes.findIndex((node) =>
               !!compiledQuery.evaluate(node.compilerNode)
             );
             let index: Maybe<number>;
@@ -267,17 +275,30 @@ export function generateInstructions(
             } else {
               index = rule.index;
             }
+
             // If a rule matches we process the results
-            if (ruleMatch) {
-              instructions.push(
-                ...compileInstructions(
-                  nodeID,
-                  [fieldDefinition],
-                  fieldName,
-                  rule.instruction,
-                  index,
-                ),
-              );
+            if (foundNodeIndex !== -1) {
+              if (rule.instruction === InstructionType.UNSET) {
+                const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
+                instructions.push(
+                  ...compileInstructions(
+                    nextPath,
+                    undefined,
+                    rule.field as string,
+                    rule.instruction,
+                  ),
+                );
+              } else {
+                instructions.push(
+                  ...compileInstructions(
+                    path,
+                    [fieldDefinition],
+                    rule.field || fieldName,
+                    rule.instruction,
+                    index,
+                  ),
+                );
+              }
             }
           }
         }
@@ -291,13 +312,13 @@ export function generateInstructions(
         );
         if (!foundNode) {
           instructions.push(
-            ...compileInstructions(nodeID, fieldDefinition, fieldName),
+            ...compileInstructions(path, fieldDefinition, fieldName),
           );
         } else {
-          const nodeId = createNodeID(nodeID, fieldName);
+          const nextPath = createPath(path, fieldName);
           if (isDefinition(fieldDefinition)) {
             instructions.push(
-              ...generateInstructions(foundNode, fieldDefinition, nodeId),
+              ...generateInstructions(foundNode, fieldDefinition, nextPath),
             );
           }
         }

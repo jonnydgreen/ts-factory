@@ -1,0 +1,11 @@
+export const snapshot = {};
+
+snapshot[`Instructions > UNSET Instruction > should define an UNSET instruction if the field is a node, a rule evaluates to an UNSET instruction and a numerical index is defined for the UNSET position 1`] = `
+[
+  {
+    field: "type",
+    path: "statements[0]",
+    type: "UNSET",
+  },
+]
+`;

@@ -1,6 +1,11 @@
 import { Definition } from '../../definitions/definitions.ts';
 import { ts, tsm } from '../../deps.ts';
-import { generateInstructions } from '../../instructions/instructions.ts';
+import {
+  compileDefaultNodeInstructions,
+  createPath,
+  generateInstructions,
+} from '../../instructions/instructions.ts';
+import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertThrows, blocks } from '../../test.deps.ts';
 
 blocks.describe('Instructions', () => {
@@ -58,5 +63,22 @@ blocks.describe('Instructions', () => {
         );
       },
     );
+  });
+
+  blocks.describe('compileDefaultNodeInstructions', () => {
+    blocks.it('should error if invalid instruction type is pass', () => {
+      // Act
+      const result = assertThrows(() =>
+        compileDefaultNodeInstructions(
+          createPath('path'),
+          undefined,
+          'field',
+          'invalid-instruction-type' as InstructionType.SET,
+        )
+      );
+
+      // Assert
+      assertIsError(result, TypeError, 'Input invalid-instruction-type not supported');
+    });
   });
 });

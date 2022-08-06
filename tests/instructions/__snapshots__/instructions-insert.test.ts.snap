@@ -14,7 +14,7 @@ snapshot[`Instructions > INSERT Instruction > should define an INSERT instructio
     },
     field: "statements",
     index: 0,
-    nodeID: "",
+    path: "",
     type: "INSERT",
   },
 ]
@@ -34,7 +34,7 @@ snapshot[`Instructions > INSERT Instruction > should define an INSERT instructio
     },
     field: "statements",
     index: 0,
-    nodeID: "",
+    path: "",
     type: "INSERT",
   },
 ]

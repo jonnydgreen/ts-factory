@@ -7,7 +7,7 @@ snapshot[`Instructions > SET Instruction > should define an SET instruction if t
       kind: "VoidKeyword",
     },
     field: "type",
-    nodeID: "statements[0]",
+    path: "statements[0]",
     type: "SET",
   },
 ]
@@ -20,7 +20,7 @@ snapshot[`Instructions > SET Instruction > should define an SET instruction if t
       kind: "VoidKeyword",
     },
     field: "type",
-    nodeID: "statements[0]",
+    path: "statements[0]",
     type: "SET",
   },
 ]

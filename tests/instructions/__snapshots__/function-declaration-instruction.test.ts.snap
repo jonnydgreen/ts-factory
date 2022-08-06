@@ -11,7 +11,7 @@ snapshot[`Instructions > ADD > FunctionDeclaration > should handle a basic funct
       },
     ],
     field: "statements",
-    nodeId: "",
+    path: "",
     type: "ADD",
   },
 ]
