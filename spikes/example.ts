@@ -12,12 +12,15 @@ export class Service {
   /**
    * Get ze data.
    */
-  public async getData(context: Context): GetDataResponse {
+  public getData(context: Context): GetDataResponse {
     let response: GetDataResponse;
 
     try {
       // Get the data
-      response = await this.#api.getData(context);
+      response = this.#api.getData(context);
+
+      // Should have a newline
+      console.log('=================');
     } catch (error) {
       throw new ServiceError({ message: 'Some message', error });
     }
@@ -25,3 +28,5 @@ export class Service {
     return response;
   }
 }
+
+export class Another {}

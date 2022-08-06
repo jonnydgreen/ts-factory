@@ -96,7 +96,7 @@ const newAST = {
         // Can we detect them?
         // Should we detect them?
         // Do we need a skipIf operation at the statement level?
-        __operations: {
+        __instructions: {
           skip: {
             keys: ['expression.expression.escapedText'],
           },

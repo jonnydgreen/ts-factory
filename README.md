@@ -1,6 +1,6 @@
 # ts-factory
 
-Build and render TypeScript using JSON
+Build and render TypeScript using JSON definitions.
 
 ## Contributing
 

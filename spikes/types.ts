@@ -36,6 +36,7 @@ type MapTSTypes<T> =
   T extends string ? string :
   T extends string | ts.MemberName ? string | MemberNameInput :
   T extends ts.TypeNode ? TypeNodeInput :
+  T extends ts.Statement ? StatementInput :
   T extends ts.Expression ? ExpressionInput :
   T extends ts.SyntaxKind ? ExpressionInput :
   unknown;
@@ -44,9 +45,8 @@ type MapTSTypes<T> =
 export type Definition =
   | SourceFileInput
   | StatementInput
-  | ExpressionInput;
-// TODO: uncomment when actually populated
-// | TypeNodeInput;
+  | ExpressionInput
+  | TypeNodeInput;
 
 // Source File Input
 export type Input = SourceFileInput;
@@ -58,9 +58,7 @@ export type SourceFileInput = CreateInput<
 // Groups
 export type MemberNameInput = IdentifierInput | PrivateIdentifierInput;
 
-export interface TypeNodeInput {
-  kind: ts.SyntaxKind;
-}
+export type TypeNodeInput = KeywordTypeInput;
 
 // Statement Inputs
 export type StatementInput = ExpressionStatementInput | ReturnStatementInput;
@@ -96,6 +94,9 @@ export type PropertyAccessExpressionInput = CreateInput<
   ts.PropertyAccessExpression,
   'expression' | 'name'
 >;
+
+// Type Node Inputs
+export type KeywordTypeInput = CreateInput<ts.KeywordTypeNode, 'kind'>;
 
 // Trivia Inputs
 
