@@ -36,6 +36,9 @@ export function getFunctionDeclarationNodeByDefinitionKey(
     case 'parameters': {
       return node.getParameters();
     }
+    case 'modifiers': {
+      return node.getModifiers();
+    }
   }
 }
 
@@ -65,28 +68,38 @@ export function getFieldNodeByDefinitionKey(
 
 export function compileDefaultNodeArrayInstructions(
   path: Path,
-  definitions: Definition[],
+  definitions: Maybe<Definition>[],
   field: string,
   instructionType?: InstructionType,
   index?: number,
 ): Instruction[] {
-  return definitions.map(({ __instructions, ...definitionItem }) => {
+  return definitions.map((definitionItem) => {
     switch (instructionType) {
       case InstructionType.INSERT:
       case InstructionType.REPLACE: {
+        const { __instructions, ...definition } = definitionItem as Definition;
         return {
           type: instructionType,
-          definition: definitionItem,
+          definition,
           field,
           path,
           // TODO: make this better
           index: index as number,
         };
       }
+      case InstructionType.REMOVE: {
+        return {
+          type: instructionType,
+          field,
+          path,
+          index: index as number,
+        };
+      }
       default: {
+        const { __instructions, ...definition } = definitionItem as Definition;
         return {
           type: instructionType ?? InstructionType.ADD,
-          definition: definitionItem,
+          definition,
           field,
           path,
         };
@@ -138,7 +151,7 @@ export function compileInstructions(
     return compileDefaultNodeArrayInstructions(
       path,
       // TODO: assert that is the case
-      definitionOrDefinitions as Definition[],
+      definitionOrDefinitions,
       field,
       instructionType,
       index,
@@ -265,27 +278,42 @@ export function generateInstructions(
                   `Invalid index for ${rule.instruction}, must be integer less than or equal to the array length (${nodes.length}); got ${result}`,
                 );
               } else if (
-                result === nodes.length && rule.instruction === InstructionType.REPLACE
+                result === nodes.length &&
+                (rule.instruction === InstructionType.REPLACE ||
+                  rule.instruction === InstructionType.REMOVE)
               ) {
                 throw new TypeError(
                   `Invalid index for ${rule.instruction}; must be a valid array index integer; got ${result}`,
                 );
               }
+
               index = result;
+            } else if (rule.instruction === InstructionType.REMOVE) {
+              index = rule.index ?? foundNodeIndex;
             } else {
               index = rule.index;
             }
 
             // If a rule matches we process the results
             if (foundNodeIndex !== -1) {
+              const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
               if (rule.instruction === InstructionType.UNSET) {
-                const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
                 instructions.push(
                   ...compileInstructions(
                     nextPath,
                     undefined,
                     rule.field as string,
                     rule.instruction,
+                  ),
+                );
+              } else if (rule.instruction === InstructionType.REMOVE) {
+                instructions.push(
+                  ...compileInstructions(
+                    nextPath,
+                    [undefined],
+                    rule.field as string,
+                    rule.instruction,
+                    index,
                   ),
                 );
               } else {

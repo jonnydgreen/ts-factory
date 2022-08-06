@@ -74,7 +74,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should not define an REPLACE instruction if',
           'the field is an array of nodes',
-          'the rules does not evaluate to an instruction',
+          'the rule does not evaluate to an instruction',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,

@@ -22,14 +22,17 @@ export function sanitiseInstructions(instructions: Instruction[]): unknown[] {
   return instructions.map((instruction) => ({
     ...instruction,
     type: InstructionType[instruction.type],
-    ...instruction.type === InstructionType.UNSET ? {} : {
-      definition: JSON.parse(JSON.stringify(instruction.definition, (key, value) => {
-        if (key === 'kind') {
-          return ts.SyntaxKind[value];
-        }
-        return value;
-      })),
-    },
+    ...(instruction.type === InstructionType.UNSET ||
+        instruction.type === InstructionType.REMOVE)
+      ? {}
+      : {
+        definition: JSON.parse(JSON.stringify(instruction.definition, (key, value) => {
+          if (key === 'kind') {
+            return ts.SyntaxKind[value];
+          }
+          return value;
+        })),
+      },
   }));
 }
 

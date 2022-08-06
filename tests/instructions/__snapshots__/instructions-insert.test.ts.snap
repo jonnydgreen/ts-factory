@@ -40,7 +40,7 @@ snapshot[`Instructions > INSERT Instruction > should define an INSERT instructio
 ]
 `;
 
-snapshot[`Instructions > INSERT Instruction > should not define an INSERT instruction if the field is an array of nodes and the rules does not evaluate to an instruction 1`] = `
+snapshot[`Instructions > INSERT Instruction > should not define an INSERT instruction if the field is an array of nodes and the rule does not evaluate to an instruction 1`] = `
 [
 ]
 `;
