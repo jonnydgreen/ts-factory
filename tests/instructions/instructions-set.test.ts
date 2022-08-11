@@ -1,3 +1,4 @@
+import { Input } from '../../definitions/definitions.ts';
 import { ts, tsm } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
@@ -5,7 +6,7 @@ import { createTestName, sanitiseInstructions, TestDefinition } from '../test-ut
 
 blocks.describe('Instructions', () => {
   blocks.describe(`Generate SET Instruction`, () => {
-    const definitions: TestDefinition[] = [
+    const definitions: TestDefinition<Input>[] = [
       {
         name: createTestName(
           'should generate a SET Instruction if',

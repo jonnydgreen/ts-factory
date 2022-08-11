@@ -2,6 +2,8 @@ import { Definition } from '../definitions/definitions.ts';
 
 export type OpaqueString<TString extends string> = string & { __opaque: TString };
 
+export type ItemOrArray<TItem> = TItem | TItem[];
+
 export type Path = OpaqueString<'Path'>;
 
 export enum InstructionType {

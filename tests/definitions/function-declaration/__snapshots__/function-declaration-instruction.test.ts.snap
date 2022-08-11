@@ -1,0 +1,13 @@
+export const snapshot = {};
+
+snapshot[`Function Declaration > should process a Function Declaration 1`] = `
+"function hello() { }
+
+"
+`;
+
+snapshot[`Function Declaration > should process a Function Declaration with a object name definition 1`] = `
+"export async function hello() { }
+
+"
+`;

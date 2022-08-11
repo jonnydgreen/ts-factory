@@ -1,69 +1,28 @@
 import {
   Instruction,
   InstructionType,
+  ItemOrArray,
   OpaqueString,
   Path,
   SetInstruction,
   UnsetInstruction,
 } from './instructions.type.ts';
 import { Definition } from '../definitions/definitions.ts';
-import { jsonata, ts, tsm } from '../deps.ts';
+import { jsonata, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
-import { StringUtils } from '../utils/utils.string.ts';
-import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
 import { assertDefinitionKind, assertNever } from '../utils/utils.assert.ts';
+import {
+  addNodeToField,
+  buildNodeFromDefinition,
+  getFieldNodeByDefinitionKey,
+  getNodeByPath,
+} from './instructions.utils.ts';
 
 export function getDefinitionEntries(
   definition: Definition,
 ): [string, ItemOrArray<Definition>][] {
   const bannedKeys = ['kind', '__instructions'];
   return Object.entries(definition).filter(([key]) => !bannedKeys.includes(key));
-}
-
-export type ItemOrArray<TItem> = TItem | TItem[];
-
-export function getFunctionDeclarationNodeByDefinitionKey(
-  node: tsm.FunctionDeclaration,
-  fieldName: string,
-): Maybe<ItemOrArray<tsm.Node>> {
-  switch (fieldName as keyof FunctionDeclarationInput) {
-    case 'name': {
-      return node.getNameNode();
-    }
-    case 'type': {
-      return node.getReturnTypeNode();
-    }
-    case 'parameters': {
-      return node.getParameters();
-    }
-    case 'modifiers': {
-      return node.getModifiers();
-    }
-  }
-}
-
-export function getFieldNodeByDefinitionKey(
-  node: tsm.Node,
-  fieldName: string,
-): Maybe<ItemOrArray<tsm.Node>> {
-  switch (node.getKind()) {
-    case ts.SyntaxKind.FunctionDeclaration: {
-      return getFunctionDeclarationNodeByDefinitionKey(
-        node as tsm.FunctionDeclaration,
-        fieldName,
-      );
-    }
-  }
-  // TODO: we should probably be less clever here
-  // and provide a mapping for each Syntax Kind
-  const getFunctionName = `get${StringUtils.upperFirst(fieldName)}` as keyof tsm.Node;
-  const getFunction = node[getFunctionName] as () => Maybe<ItemOrArray<tsm.Node>>;
-  if (typeof getFunction !== 'function') {
-    throw new TypeError(
-      `Unable to get field of name '${fieldName}' from node of kind '${node.getKindName()}'`,
-    );
-  }
-  return getFunction.call(node);
 }
 
 export function compileDefaultNodeArrayInstructions(
@@ -354,4 +313,48 @@ export function generateInstructions(
     }
   }
   return instructions;
+}
+
+export function processInstruction(
+  sourceFile: tsm.SourceFile,
+  instruction: Instruction,
+) {
+  switch (instruction.type) {
+    case InstructionType.ADD: {
+      const node = getNodeByPath(sourceFile, instruction.path);
+      const fieldNodeToAdd = buildNodeFromDefinition(instruction.definition);
+      addNodeToField(node, instruction.field, fieldNodeToAdd);
+      break;
+    }
+      // case InstructionType.SET: {
+      //   const node = getNodeById(sourceFile, instruction.nodeId);
+      //   const fieldNodeToSet = buildNode(instruction.definition);
+      //   const functionName = convertToNodeFn('set', instruction.field);
+      //   console.log({ functionName, node });
+      //   const setNodeFieldFunction = (
+      //     node[functionName as keyof typeof node] as (input: unknown) => void
+      //   ).bind(node);
+      //   setNodeFieldFunction(
+      //     tsm.printNode(fieldNodeToSet, { removeComments: false }),
+      //   );
+      //   break;
+      // }
+      // case InstructionType.REPLACE:
+      // case InstructionType.INSERT: {
+      //   throw new Error(`Instruction type ${instruction.type} not supported.`);
+      // }
+      // TODO: uncomment
+      // default: {
+      //   assertNever(instruction);
+      // }
+  }
+}
+
+export function processInstructions(
+  sourceFile: tsm.SourceFile,
+  instructions: Instruction[],
+): void {
+  for (const instruction of instructions) {
+    processInstruction(sourceFile, instruction);
+  }
 }

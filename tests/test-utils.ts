@@ -1,4 +1,3 @@
-import { Input } from '../definitions/definitions.ts';
 import { ts } from '../deps.ts';
 import { Instruction, InstructionType } from '../instructions/instructions.type.ts';
 
@@ -9,13 +8,15 @@ export interface TestDefinitionError {
   message?: string;
 }
 
-export interface TestDefinition {
+export interface TestDefinition<TInput> {
   name: string;
-  input: Input;
+  input: TInput;
   sourceFileContents?: string;
   error?: TestDefinitionError;
   // TODO: bindings
   // bindings?: TBindings;
+  ignore?: boolean;
+  only?: boolean;
 }
 
 export function sanitiseInstructions(instructions: Instruction[]): unknown[] {

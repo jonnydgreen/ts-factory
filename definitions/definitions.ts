@@ -1,3 +1,4 @@
+import { BlockInput } from './block/block.type.ts';
 import { FunctionDeclarationInput } from './function-declaration/function-declaration.type.ts';
 import { IdentifierInput } from './identifier/identifier.type.ts';
 import { KeywordTypeNodeInput } from './keyword-type-node/keyword-type-node.type.ts';
@@ -16,7 +17,7 @@ export type Definition =
 export type MemberNameInput = IdentifierInput;
 
 // Statement Inputs
-export type StatementInput = FunctionDeclarationInput;
+export type StatementInput = FunctionDeclarationInput | BlockInput;
 
 // Expression Inputs
 export type ExpressionInput = IdentifierInput;

@@ -1,3 +1,4 @@
+import { Input } from '../../definitions/definitions.ts';
 import { ts, tsm } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
@@ -6,7 +7,7 @@ import { createTestName, sanitiseInstructions, TestDefinition } from '../test-ut
 
 blocks.describe('Instructions', () => {
   blocks.describe(`Generate REMOVE Instruction`, () => {
-    const definitions: TestDefinition[] = [
+    const definitions: TestDefinition<Input>[] = [
       {
         name: createTestName(
           'should generate a REMOVE Instruction if',

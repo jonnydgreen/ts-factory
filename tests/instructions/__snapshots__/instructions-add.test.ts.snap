@@ -4,7 +4,13 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
 [
   {
     definition: {
+      body: {
+        kind: "Block",
+        statements: [
+        ],
+      },
       kind: "FunctionDeclaration",
+      name: "hello",
       parameters: [
       ],
     },
@@ -19,7 +25,13 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
 [
   {
     definition: {
+      body: {
+        kind: "Block",
+        statements: [
+        ],
+      },
       kind: "FunctionDeclaration",
+      name: "hello",
       parameters: [
       ],
     },
@@ -34,7 +46,13 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
 [
   {
     definition: {
+      body: {
+        kind: "Block",
+        statements: [
+        ],
+      },
       kind: "FunctionDeclaration",
+      name: "hello",
       parameters: [
       ],
     },
@@ -49,6 +67,11 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
 [
   {
     definition: {
+      body: {
+        kind: "Block",
+        statements: [
+        ],
+      },
       kind: "FunctionDeclaration",
       name: {
         kind: "Identifier",
@@ -61,11 +84,6 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
     path: "",
     type: "ADD",
   },
-]
-`;
-
-snapshot[`Instructions > Generate ADD Instruction > should not generate an ADD Instruction if the field is an array of nodes and the field node is found using the defined instruction ID 1`] = `
-[
 ]
 `;
 
@@ -88,4 +106,21 @@ snapshot[`Instructions > Generate ADD Instruction > should generate an ADD Instr
     type: "ADD",
   },
 ]
+`;
+
+snapshot[`Instructions > Generate ADD Instruction > should not generate an ADD Instruction if the field is an array of nodes and the field node is found using the defined instruction ID 1`] = `
+[
+]
+`;
+
+snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes, the field nodes don't exist and no instructions are specified on the field definition 1`] = `
+"function hello() { }
+
+"
+`;
+
+snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes and the field is a nested definition 1`] = `
+"
+export function hello() { }
+"
 `;
