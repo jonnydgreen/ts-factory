@@ -5,13 +5,13 @@ import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
-  blocks.describe(`REMOVE Instruction`, () => {
+  blocks.describe(`Generate REMOVE Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should generate a REMOVE Instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'no index is defined for the REMOVE position',
         ),
         input: {
@@ -41,9 +41,9 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should generate a REMOVE Instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'a numerical index is defined for the REMOVE position',
         ),
         input: {
@@ -74,9 +74,9 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an REMOVE instruction if',
+          'should generate a REMOVE Instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'a string index is evaluated to an integer for the REMOVE position',
         ),
         input: {
@@ -110,7 +110,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'a string index is evaluated to an non-integer for the REMOVE position',
         ),
         input: {
@@ -147,7 +147,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'a string index is evaluated to an integer equal to the length of the array of nodes',
         ),
         input: {
@@ -184,7 +184,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an REMOVE instruction',
+          'a rule evaluates to an REMOVE Instruction',
           'a string index is evaluated to an integer greater than the length of the array of nodes',
         ),
         input: {

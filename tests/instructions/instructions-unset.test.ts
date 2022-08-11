@@ -5,13 +5,13 @@ import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
-  blocks.describe(`UNSET Instruction`, () => {
+  blocks.describe(`Generate UNSET Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an UNSET instruction if',
+          'should generate an UNSET Instruction if',
           'the field is a node',
-          'a rule evaluates to an UNSET instruction',
+          'a rule evaluates to an UNSET Instruction',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -40,7 +40,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should not define an UNSET instruction if',
+          'should not generate an UNSET Instruction if',
           'the field is a node',
           'the rule does not evaluate to an instruction',
         ),

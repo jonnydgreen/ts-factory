@@ -4,11 +4,11 @@ import { assertSnapshot, blocks } from '../../test.deps.ts';
 import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
-  blocks.describe(`SET Instruction`, () => {
+  blocks.describe(`Generate SET Instruction`, () => {
     const definitions: TestDefinition[] = [
       {
         name: createTestName(
-          'should define an SET instruction if',
+          'should generate a SET Instruction if',
           'the field is a node',
           'the field node doesn\'t exist',
           'no instructions are specified on the field definition',
@@ -34,7 +34,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should define an SET instruction if',
+          'should generate a SET Instruction if',
           'the field is a node',
           'the field node is not found using the defined instruction ID',
         ),
@@ -62,7 +62,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should not define an SET instruction if',
+          'should not generate a SET Instruction if',
           'the field is a node',
           'the field node exists',
           'no instructions are specified on the field definition',
@@ -88,7 +88,7 @@ blocks.describe('Instructions', () => {
       },
       {
         name: createTestName(
-          'should not define an SET instruction if',
+          'should not generate a SET Instruction if',
           'the field is a node',
           'the field node is found using the defined instruction ID',
         ),
