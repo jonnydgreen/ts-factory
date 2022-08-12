@@ -4,6 +4,7 @@ import { ItemOrArray } from './instructions.type.ts';
 import { StringUtils } from '../utils/utils.string.ts';
 import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
 import { Definition } from '../definitions/definitions.ts';
+import { Modifier } from 'https://deno.land/x/ts_morph@15.1.0/common/typescript.d.ts';
 
 export function getFunctionDeclarationNodeByDefinitionKey(
   node: tsm.FunctionDeclaration,
@@ -131,15 +132,36 @@ export function buildNodeFromDefinition<TReturn extends ts.Node>(
     //   node = ts.factory.createPropertyAccessExpression(expression, name);
     //   break;
     // }
-    // case ts.SyntaxKind.StringLiteral: {
-    //   node = ts.factory.createStringLiteral(definition.text);
-    //   break;
-    // }
+    case ts.SyntaxKind.InterfaceDeclaration: {
+      node = ts.factory.createInterfaceDeclaration(
+        undefined, // TODO
+        definition.modifiers?.map<Modifier>(buildNodeFromDefinition),
+        typeof definition.name === 'string'
+          ? definition.name
+          : buildNodeFromDefinition<ts.Identifier>(definition.name),
+        undefined, // TODO
+        undefined, // TODO
+        definition.members.map<ts.TypeElement>(buildNodeFromDefinition),
+      );
+      break;
+    }
+    case ts.SyntaxKind.PropertySignature: {
+      node = ts.factory.createPropertySignature(
+        definition.modifiers?.map<Modifier>(buildNodeFromDefinition),
+        typeof definition.name === 'string'
+          ? definition.name
+          : buildNodeFromDefinition<ts.Identifier>(definition.name),
+        shouldBuildNodeFromDefinition<ts.QuestionToken>(definition.questionToken),
+        shouldBuildNodeFromDefinition(definition.type),
+      );
+      break;
+    }
     case ts.SyntaxKind.Identifier: {
       node = ts.factory.createIdentifier(definition.text);
       break;
     }
     // Modifier
+    case ts.SyntaxKind.ReadonlyKeyword:
     case ts.SyntaxKind.AsyncKeyword:
     case ts.SyntaxKind.ExportKeyword: {
       node = ts.factory.createModifier(definition.kind);
@@ -154,25 +176,37 @@ export function buildNodeFromDefinition<TReturn extends ts.Node>(
     }
     case ts.SyntaxKind.FunctionDeclaration: {
       node = ts.factory.createFunctionDeclaration(
+        // TODO
         undefined,
         definition.modifiers?.map<ts.Modifier>(buildNodeFromDefinition),
+        // TODO
         undefined,
         typeof definition.name === 'string'
           ? definition.name
           : shouldBuildNodeFromDefinition<ts.Identifier>(definition.name),
+        // TODO
         undefined,
-        definition.parameters as ts.ParameterDeclaration[],
+        // TODO
+        [],
         shouldBuildNodeFromDefinition<ts.TypeNode>(definition.type),
         shouldBuildNodeFromDefinition<ts.Block>(definition.body),
       );
       break;
     }
     default: {
-      throw new TypeError(
-        `TS Node Kind not supported: '${definition.kind}|${
-          ts.SyntaxKind[definition.kind]
-        }'`,
-      );
+      if (
+        definition.kind >= ts.SyntaxKind.FirstToken &&
+        definition.kind <= ts.SyntaxKind.LastToken
+      ) {
+        node = ts.factory.createToken(definition.kind as number);
+      } else {
+        // TODO: assert never
+        throw new TypeError(
+          `TS Node Kind not supported: '${definition.kind}|${
+            ts.SyntaxKind[definition.kind]
+          }'`,
+        );
+      }
     }
   }
 

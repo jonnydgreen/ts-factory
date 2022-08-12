@@ -3,10 +3,13 @@ import type { Instructions } from '../instructions/instructions.type.ts';
 import type {
   ExpressionInput,
   MemberNameInput,
+  PropertyNameInput,
   StatementInput,
+  TypeElementInput,
   TypeNodeInput,
 } from './definitions.ts';
 import { ModifierInput } from './modifier/modifier.type.ts';
+import { TokenInput } from './token/token.type.ts';
 import type { LeadingTriviaInput } from './trivia/trivia.type.ts';
 
 export type MergeIntersections<I> = { [K in keyof I]: I[K] };
@@ -24,10 +27,13 @@ export type MapTSTypes<T> =
   T extends string ? string :
   T extends ts.Statement ? StatementInput :
   T extends string | ts.MemberName ? string | MemberNameInput :
+  T extends string | ts.PropertyName ? string | PropertyNameInput :
+  T extends ts.Modifier ? ModifierInput :
   T extends ts.TypeNode ? TypeNodeInput :
+  T extends ts.TypeElement ? TypeElementInput :
   T extends ts.Expression ? ExpressionInput :
   T extends ts.SyntaxKind ? ExpressionInput :
-  T extends ts.Modifier ? ModifierInput :
+  T extends ts.Token<ts.SyntaxKind> ? TokenInput :
   unknown;
 
 export type CreateInput<
