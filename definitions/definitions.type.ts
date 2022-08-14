@@ -55,3 +55,10 @@ export type CreateInput<
     >;
   }
 >;
+
+export type PickDefinitionFields<T> = Omit<
+  T,
+  '__instructions' | 'leadingTrivia' | 'kind'
+>;
+
+export type DefinitionFields<T> = keyof PickDefinitionFields<T>;

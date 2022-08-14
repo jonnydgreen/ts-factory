@@ -1,9 +1,14 @@
 import { Input } from '../../definitions/definitions.ts';
-import { ts, tsm } from '../../deps.ts';
+import { ts } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
-import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
+import {
+  createSourceFile,
+  createTestName,
+  sanitiseInstructions,
+  TestDefinition,
+} from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
   blocks.describe(`Generate REMOVE Instruction`, () => {
@@ -221,29 +226,30 @@ blocks.describe('Instructions', () => {
     ];
 
     for (const definition of definitions) {
-      blocks.it(definition.name, async (t) => {
-        // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          definition.sourceFileContents,
-        );
+      blocks.it({
+        name: definition.name,
+        fn: async (t) => {
+          // Arrange
+          const sourceFile = createSourceFile(definition.sourceFileContents);
 
-        if (definition.error) {
-          // Act
-          const result = assertThrows(() =>
-            generateInstructions(sourceFile, definition.input)
-          );
+          if (definition.error) {
+            // Act
+            const result = assertThrows(() =>
+              generateInstructions(sourceFile, definition.input)
+            );
 
-          // Assert
-          assertIsError(result, definition.error.prototype, definition.error.message);
-        } else {
-          // Act
-          const result = generateInstructions(sourceFile, definition.input);
+            // Assert
+            assertIsError(result, definition.error.prototype, definition.error.message);
+          } else {
+            // Act
+            const result = generateInstructions(sourceFile, definition.input);
 
-          // Assert
-          await assertSnapshot(t, sanitiseInstructions(result));
-        }
+            // Assert
+            await assertSnapshot(t, sanitiseInstructions(result));
+          }
+        },
+        ignore: definition.ignore,
+        only: definition.only,
       });
     }
   });

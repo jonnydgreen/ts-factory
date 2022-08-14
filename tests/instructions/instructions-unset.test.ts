@@ -1,9 +1,17 @@
-import { Input } from '../../definitions/definitions.ts';
-import { ts, tsm } from '../../deps.ts';
-import { generateInstructions } from '../../instructions/instructions.ts';
+import { Definition, Input } from '../../definitions/definitions.ts';
+import { ts } from '../../deps.ts';
+import {
+  generateInstructions,
+  processInstructions,
+} from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
-import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
+import {
+  createSourceFile,
+  createTestName,
+  sanitiseInstructions,
+  TestDefinition,
+} from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
   blocks.describe(`Generate UNSET Instruction`, () => {
@@ -74,11 +82,7 @@ blocks.describe('Instructions', () => {
     for (const definition of definitions) {
       blocks.it(definition.name, async (t) => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          definition.sourceFileContents,
-        );
+        const sourceFile = createSourceFile(definition.sourceFileContents);
 
         if (definition.error) {
           // Act
@@ -95,6 +99,63 @@ blocks.describe('Instructions', () => {
           // Assert
           await assertSnapshot(t, sanitiseInstructions(result));
         }
+      });
+    }
+  });
+
+  blocks.describe(`Process UNSET Instruction`, () => {
+    const definitions: TestDefinition<Definition>[] = [
+      {
+        name: createTestName(
+          'should process an UNSET Instruction if',
+          'the field is a node',
+          'the field node exists',
+          'no instructions are specified on the field definition',
+        ),
+        input: {
+          kind: ts.SyntaxKind.SourceFile,
+          statements: [
+            {
+              __instructions: {
+                id: 'name.text="hello"',
+                rules: [{
+                  instruction: InstructionType.UNSET,
+                  condition: '$exists(type)',
+                  field: 'type',
+                }],
+              },
+              kind: ts.SyntaxKind.FunctionDeclaration,
+              name: {
+                kind: ts.SyntaxKind.Identifier,
+                text: 'foo',
+              },
+              parameters: [],
+            },
+          ],
+        },
+        sourceFileContents: `
+          export function hello(): void {}
+        `,
+      },
+    ];
+
+    for (const definition of definitions) {
+      blocks.it({
+        name: definition.name,
+        fn: async (t) => {
+          // Arrange
+          const sourceFile = createSourceFile(definition.sourceFileContents);
+          sourceFile.formatText();
+          const instructions = generateInstructions(sourceFile, definition.input);
+
+          // Act
+          processInstructions(sourceFile, instructions);
+
+          // Assert
+          await assertSnapshot(t, sourceFile.getFullText());
+        },
+        ignore: definition.ignore,
+        only: definition.only,
       });
     }
   });

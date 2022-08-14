@@ -1,5 +1,6 @@
 import {
   Instruction,
+  InstructionRule,
   InstructionType,
   ItemOrArray,
   OpaqueString,
@@ -8,15 +9,22 @@ import {
   UnsetInstruction,
 } from './instructions.type.ts';
 import { Definition } from '../definitions/definitions.ts';
-import { jsonata, tsm } from '../deps.ts';
+import { jsonata, ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
-import { assertDefinitionKind, assertNever } from '../utils/utils.assert.ts';
 import {
-  addNodeToField,
-  buildNodeFromDefinition,
+  assertArray,
+  assertDefinitionKind,
+  assertNever,
+  assertNotArray,
+  isDefined,
+} from '../utils/utils.assert.ts';
+import {
   getFieldNodeByDefinitionKey,
   getNodeByPath,
+  shouldBuildNodeFromDefinition,
 } from './instructions.utils.ts';
+import { processFunctionDeclaration } from '../definitions/function-declaration/function-declaration.utils.ts';
+import { processSourceFile } from '../definitions/source-file/source-file.utils.ts';
 
 export function getDefinitionEntries(
   definition: Definition,
@@ -27,7 +35,7 @@ export function getDefinitionEntries(
 
 export function compileDefaultNodeArrayInstructions(
   path: Path,
-  definitions: Maybe<Definition>[],
+  definitions: Definition[],
   field: string,
   instructionType?: InstructionType,
   index?: number,
@@ -36,13 +44,13 @@ export function compileDefaultNodeArrayInstructions(
     switch (instructionType) {
       case InstructionType.INSERT:
       case InstructionType.REPLACE: {
-        const { __instructions, ...definition } = definitionItem as Definition;
+        const { __instructions, ...definition } = definitionItem;
         return {
           type: instructionType,
           definition,
           field,
           path,
-          // TODO: make this better
+          // TODO: remove cast
           index: index as number,
         };
       }
@@ -51,11 +59,12 @@ export function compileDefaultNodeArrayInstructions(
           type: instructionType,
           field,
           path,
+          // TODO: remove cast
           index: index as number,
         };
       }
       default: {
-        const { __instructions, ...definition } = definitionItem as Definition;
+        const { __instructions, ...definition } = definitionItem;
         return {
           type: instructionType ?? InstructionType.ADD,
           definition,
@@ -107,9 +116,9 @@ export function compileInstructions(
 ): Instruction[] {
   // If an array, we compile an ADD instruction for each definition.
   if (Array.isArray(definitionOrDefinitions)) {
+    assertArray(definitionOrDefinitions);
     return compileDefaultNodeArrayInstructions(
       path,
-      // TODO: assert that is the case
       definitionOrDefinitions,
       field,
       instructionType,
@@ -125,18 +134,7 @@ export function compileInstructions(
   );
 }
 
-export function isDefined<T>(nodeOrNodes: Maybe<ItemOrArray<T>>): boolean {
-  if (!nodeOrNodes) {
-    return false;
-  }
-
-  if (Array.isArray(nodeOrNodes) && nodeOrNodes.length === 0) {
-    return false;
-  }
-
-  return true;
-}
-
+// TODO: move
 export function createOpaqueString<T extends OpaqueString<string>>(input: string): T {
   return input as T;
 }
@@ -158,154 +156,270 @@ export function isDefinition(definition: unknown): definition is Definition {
     Number.isInteger((definition as Definition).kind);
 }
 
+export function shouldGetRuleIndex(
+  rule: InstructionRule,
+  nodes: tsm.Node[],
+  nodeIndex: number,
+): Maybe<number> {
+  if (typeof rule.index === 'string') {
+    // TODO: error for rule index defined with SET/ADD etc
+    const result = Number(
+      jsonata(rule.index).evaluate(nodes.map((node) => node.compilerNode)),
+    );
+    if (!Number.isInteger(result) || result > nodes.length) {
+      throw new TypeError(
+        `Invalid index for ${rule.instruction}, must be integer less than or equal to the array length (${nodes.length}); got ${result}`,
+      );
+    } else if (
+      result === nodes.length &&
+      (rule.instruction === InstructionType.REPLACE ||
+        rule.instruction === InstructionType.REMOVE)
+    ) {
+      throw new TypeError(
+        `Invalid index for ${rule.instruction}; must be a valid array index integer; got ${result}`,
+      );
+    }
+
+    return result;
+  }
+
+  if (rule.instruction === InstructionType.REMOVE) {
+    return rule.index ?? nodeIndex;
+  }
+
+  return rule.index;
+}
+
+export function shouldGenerateInstructionsFromRules(
+  definition: Definition,
+  nodeOrNodes: tsm.Node | tsm.Node[],
+  context: Context,
+): Instruction[] {
+  if (
+    !definition.__instructions?.rules ||
+    definition.__instructions.rules.length === 0
+  ) {
+    return [];
+  }
+
+  const { path, field } = context;
+  const instructions: Instruction[] = [];
+  if (definition.__instructions?.rules) {
+    for (const rule of definition.__instructions.rules) {
+      let nextPath: Maybe<Path>;
+      let index: Maybe<number>;
+      const compiledQuery = jsonata(rule.condition);
+      if (Array.isArray(nodeOrNodes)) {
+        const nodes = nodeOrNodes;
+        const foundNodeIndex = nodes.findIndex((node) =>
+          !!compiledQuery.evaluate(node.compilerNode)
+        );
+
+        // If a rule matches we process the results
+        if (field && foundNodeIndex !== -1) {
+          index = shouldGetRuleIndex(rule, nodes, foundNodeIndex);
+          nextPath = createPath(path, field, foundNodeIndex.toString());
+        }
+      } else {
+        const node = nodeOrNodes;
+        if (compiledQuery.evaluate(node.compilerNode) === true) {
+          nextPath = path;
+        }
+      }
+
+      // TODO some horrible casts here
+      if (typeof nextPath === 'string') {
+        if (rule.instruction === InstructionType.UNSET) {
+          instructions.push(
+            ...compileInstructions(
+              nextPath,
+              undefined,
+              // TODO: remove cast
+              rule.field as string,
+              rule.instruction,
+            ),
+          );
+        } else if (rule.instruction === InstructionType.REMOVE) {
+          instructions.push(
+            ...compileInstructions(
+              nextPath,
+              [undefined],
+              // TODO: remove cast
+              rule.field as string,
+              rule.instruction,
+              index,
+            ),
+          );
+        } else {
+          instructions.push(
+            ...compileInstructions(
+              path,
+              [definition],
+              // TODO: remove cast
+              rule.field || field as string,
+              rule.instruction,
+              index,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  return instructions;
+}
+
+export interface Context {
+  path: Path;
+  field?: string;
+}
+
+export function createContext(options?: Partial<Context>): Context {
+  return {
+    path: options?.path ?? createPath(),
+    field: options?.field,
+  };
+}
+
 export function generateInstructions(
   node: tsm.Node,
   definition: Definition,
-  path: Path = createPath(),
+  context = createContext(),
 ): Instruction[] {
   assertDefinitionKind(definition, node.getKind());
 
   const instructions: Instruction[] = [];
-  for (
-    const [fieldName, fieldDefinitionOrDefinitions] of getDefinitionEntries(definition)
-  ) {
+  const { path, field } = context;
+
+  // If we have no field defined, we are at the root definition
+  if (!field) {
+    instructions.push(...shouldGenerateInstructionsFromRules(definition, node, context));
+  }
+
+  for (const [field, fieldDefinitions] of getDefinitionEntries(definition)) {
     // Get the running node field
-    const nodeValueOrValues = getFieldNodeByDefinitionKey(node, fieldName);
+    const nodes = getFieldNodeByDefinitionKey(node, field);
 
     // If no node or nodes found, we can immediately build an instruction
-    if (!isDefined(nodeValueOrValues)) {
-      instructions.push(
-        ...compileInstructions(path, fieldDefinitionOrDefinitions, fieldName),
-      );
+    if (!isDefined(nodes)) {
+      instructions.push(...compileInstructions(path, fieldDefinitions, field));
+      // There is nothing else to do, so we continue
       continue;
     }
 
-    // Otherwise, we have found a node
+    // === Otherwise, we have found a node for the field ===
 
     // If the fieldDefinition is an array, we loop through these and process in turn
-    if (Array.isArray(fieldDefinitionOrDefinitions)) {
-      for (const fieldDefinition of fieldDefinitionOrDefinitions) {
-        // If no instructions, we compile using the default instruction rules
+    if (Array.isArray(fieldDefinitions)) {
+      assertArray(nodes);
+      for (const fieldDefinition of fieldDefinitions) {
+        // If no instructions, we compile using the default instruction rules as normal
         if (!fieldDefinition.__instructions) {
           instructions.push(
-            ...compileDefaultNodeArrayInstructions(path, [fieldDefinition], fieldName),
+            ...compileDefaultNodeArrayInstructions(path, [fieldDefinition], field),
           );
-          // TODO: we need to decide what to do after ^
-        } else if (fieldDefinition.__instructions.id) {
+        }
+
+        // If we have an ID field, let's try and get the node
+        if (fieldDefinition.__instructions?.id) {
           const compiledQuery = jsonata(fieldDefinition.__instructions.id);
-          // TODO: assert here
-          const nodes = (nodeValueOrValues as tsm.Node[]);
           const foundNodeIndex = nodes.findIndex((node) =>
             !!compiledQuery.evaluate(node.compilerNode)
           );
           if (foundNodeIndex === -1) {
             instructions.push(
-              ...compileInstructions(path, [fieldDefinition], fieldName),
+              ...compileInstructions(path, [fieldDefinition], field),
             );
           } else {
-            const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
+            const nextPath = createPath(path, field, foundNodeIndex.toString());
             if (isDefinition(fieldDefinition)) {
               instructions.push(
                 ...generateInstructions(
                   nodes[foundNodeIndex],
                   fieldDefinition,
-                  nextPath,
+                  createContext({ path: nextPath, field }),
                 ),
               );
             }
           }
-          // If rules are defined, we process accordingly
-          // At the moment, we do not process ID and rules at the same time
-          // because the behaviour is not yet defined.
         }
 
-        if (fieldDefinition.__instructions?.rules) {
-          for (const rule of fieldDefinition.__instructions.rules) {
-            const compiledQuery = jsonata(rule.condition);
-            const nodes = (nodeValueOrValues as tsm.Node[]);
-            const foundNodeIndex = nodes.findIndex((node) =>
-              !!compiledQuery.evaluate(node.compilerNode)
-            );
-            let index: Maybe<number>;
-            if (typeof rule.index === 'string') {
-              // TODO: error for rule index defined with SET/ADD etc
-              const result = Number(
-                jsonata(rule.index).evaluate(nodes.map((node) => node.compilerNode)),
-              );
-              if (!Number.isInteger(result) || result > nodes.length) {
-                throw new TypeError(
-                  `Invalid index for ${rule.instruction}, must be integer less than or equal to the array length (${nodes.length}); got ${result}`,
-                );
-              } else if (
-                result === nodes.length &&
-                (rule.instruction === InstructionType.REPLACE ||
-                  rule.instruction === InstructionType.REMOVE)
-              ) {
-                throw new TypeError(
-                  `Invalid index for ${rule.instruction}; must be a valid array index integer; got ${result}`,
-                );
-              }
+        // If we have defined rules, process them
+        instructions.push(
+          ...shouldGenerateInstructionsFromRules(
+            fieldDefinition,
+            nodes,
+            createContext({ path, field }),
+          ),
+        );
+        // if (fieldDefinition.__instructions?.rules) {
+        //   for (const rule of fieldDefinition.__instructions.rules) {
+        //     const compiledQuery = jsonata(rule.condition);
+        //     const nodes = (nodes as tsm.Node[]);
+        //     const foundNodeIndex = nodes.findIndex((node) =>
+        //       !!compiledQuery.evaluate(node.compilerNode)
+        //     );
+        //     const index = shouldGetRuleIndex(rule, nodes, foundNodeIndex);
 
-              index = result;
-            } else if (rule.instruction === InstructionType.REMOVE) {
-              index = rule.index ?? foundNodeIndex;
-            } else {
-              index = rule.index;
-            }
-
-            // If a rule matches we process the results
-            if (foundNodeIndex !== -1) {
-              const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
-              if (rule.instruction === InstructionType.UNSET) {
-                instructions.push(
-                  ...compileInstructions(
-                    nextPath,
-                    undefined,
-                    rule.field as string,
-                    rule.instruction,
-                  ),
-                );
-              } else if (rule.instruction === InstructionType.REMOVE) {
-                instructions.push(
-                  ...compileInstructions(
-                    nextPath,
-                    [undefined],
-                    rule.field as string,
-                    rule.instruction,
-                    index,
-                  ),
-                );
-              } else {
-                instructions.push(
-                  ...compileInstructions(
-                    path,
-                    [fieldDefinition],
-                    rule.field || fieldName,
-                    rule.instruction,
-                    index,
-                  ),
-                );
-              }
-            }
-          }
-        }
+        //     // If a rule matches we process the results
+        //     if (foundNodeIndex !== -1) {
+        //       const nextPath = createPath(path, fieldName, foundNodeIndex.toString());
+        //       if (rule.instruction === InstructionType.UNSET) {
+        //         instructions.push(
+        //           ...compileInstructions(
+        //             nextPath,
+        //             undefined,
+        //             rule.field as string,
+        //             rule.instruction,
+        //           ),
+        //         );
+        //       } else if (rule.instruction === InstructionType.REMOVE) {
+        //         instructions.push(
+        //           ...compileInstructions(
+        //             nextPath,
+        //             [undefined],
+        //             rule.field as string,
+        //             rule.instruction,
+        //             index,
+        //           ),
+        //         );
+        //       } else {
+        //         instructions.push(
+        //           ...compileInstructions(
+        //             path,
+        //             [fieldDefinition],
+        //             rule.field || fieldName,
+        //             rule.instruction,
+        //             index,
+        //           ),
+        //         );
+        //       }
+        //     }
+        //   }
+        // }
       }
     } else {
-      const fieldDefinition = fieldDefinitionOrDefinitions;
+      assertNotArray(nodes);
+      const node = nodes;
+      const fieldDefinition = fieldDefinitions;
       if (fieldDefinition.__instructions?.id) {
         const compiledQuery = jsonata(fieldDefinition.__instructions.id);
-        const foundNode = [nodeValueOrValues as tsm.Node].find((node) =>
+        const foundNode = [node].find((node) =>
           compiledQuery.evaluate(node.compilerNode)
         );
         if (!foundNode) {
           instructions.push(
-            ...compileInstructions(path, fieldDefinition, fieldName),
+            ...compileInstructions(path, fieldDefinition, field),
           );
         } else {
-          const nextPath = createPath(path, fieldName);
+          const nextPath = createPath(path, field);
           if (isDefinition(fieldDefinition)) {
             instructions.push(
-              ...generateInstructions(foundNode, fieldDefinition, nextPath),
+              ...generateInstructions(
+                foundNode,
+                fieldDefinition,
+                createContext({ path: nextPath, field }),
+              ),
             );
           }
         }
@@ -316,45 +430,42 @@ export function generateInstructions(
 }
 
 export function processInstruction(
-  sourceFile: tsm.SourceFile,
+  currentNode: tsm.Node,
   instruction: Instruction,
-) {
-  switch (instruction.type) {
-    case InstructionType.ADD: {
-      const node = getNodeByPath(sourceFile, instruction.path);
-      const fieldNodeToAdd = buildNodeFromDefinition(instruction.definition);
-      addNodeToField(node, instruction.field, fieldNodeToAdd);
-      break;
+): void {
+  const parentNode = getNodeByPath(currentNode, instruction.path);
+  let definition: Maybe<Definition>;
+  if (
+    instruction.type === InstructionType.REMOVE ||
+    instruction.type === InstructionType.UNSET
+  ) {
+    definition = undefined;
+  } else {
+    definition = instruction.definition;
+  }
+
+  const nodeToModify = shouldBuildNodeFromDefinition(definition);
+  switch (parentNode.getKind()) {
+    case ts.SyntaxKind.SourceFile: {
+      return processSourceFile(parentNode, instruction, nodeToModify);
     }
-      // case InstructionType.SET: {
-      //   const node = getNodeById(sourceFile, instruction.nodeId);
-      //   const fieldNodeToSet = buildNode(instruction.definition);
-      //   const functionName = convertToNodeFn('set', instruction.field);
-      //   console.log({ functionName, node });
-      //   const setNodeFieldFunction = (
-      //     node[functionName as keyof typeof node] as (input: unknown) => void
-      //   ).bind(node);
-      //   setNodeFieldFunction(
-      //     tsm.printNode(fieldNodeToSet, { removeComments: false }),
-      //   );
-      //   break;
-      // }
-      // case InstructionType.REPLACE:
-      // case InstructionType.INSERT: {
-      //   throw new Error(`Instruction type ${instruction.type} not supported.`);
-      // }
-      // TODO: uncomment
-      // default: {
-      //   assertNever(instruction);
-      // }
+    case ts.SyntaxKind.FunctionDeclaration: {
+      return processFunctionDeclaration(parentNode, instruction, nodeToModify);
+    }
+    default: {
+      // TODO: assertNever
+      throw new TypeError(
+        `Unable to Process Instruction: unsupported parent node of kind ${parentNode.getKindName()}`,
+      );
+    }
   }
 }
 
 export function processInstructions(
-  sourceFile: tsm.SourceFile,
+  currentNode: tsm.Node,
   instructions: Instruction[],
 ): void {
   for (const instruction of instructions) {
-    processInstruction(sourceFile, instruction);
+    processInstruction(currentNode, instruction);
   }
 }

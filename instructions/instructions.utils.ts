@@ -1,10 +1,11 @@
 import { ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
-import { ItemOrArray } from './instructions.type.ts';
+import { Instruction, InstructionType, ItemOrArray } from './instructions.type.ts';
 import { StringUtils } from '../utils/utils.string.ts';
 import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
 import { Definition } from '../definitions/definitions.ts';
 import { Modifier } from 'https://deno.land/x/ts_morph@15.1.0/common/typescript.d.ts';
+import { DefinitionFields } from '../definitions/definitions.type.ts';
 
 export function getFunctionDeclarationNodeByDefinitionKey(
   node: tsm.FunctionDeclaration,
@@ -79,8 +80,6 @@ export function getNodeByPath(currentNode: tsm.Node, path = ''): tsm.Node {
     const [, ...nextIdParts] = remainingPath;
     return getNodeByPath(nextNode, nextIdParts.join('.'));
   }
-
-  console.log(currentNode.getKindName(), location);
 
   if (typeof nextNodeOrNodes === 'undefined') {
     throw new TypeError(
@@ -223,62 +222,29 @@ export function buildNodeFromDefinition<TReturn extends ts.Node>(
   return node as TReturn;
 }
 
-export function processFunctionDeclarationFieldNode(
-  parentNode: tsm.FunctionDeclaration,
-  field: string,
-  nodeToAdd: ts.Node,
-): void {
-  switch (field as keyof FunctionDeclarationInput) {
-    case 'modifiers': {
-      const kind = (nodeToAdd as ts.Modifier).kind;
-      switch (kind) {
-        case ts.SyntaxKind.ExportKeyword: {
-          parentNode.setIsExported(true);
-          break;
-        }
-      }
-      // TODO: assertNever
-      break;
-    }
-      // // TODO: assertNever
-      // default: {
-      // }
-  }
-}
+export type ProcessNodeFieldInput<T extends Definition> = Record<
+  DefinitionFields<T>,
+  Partial<
+    Record<
+      InstructionType,
+      () => void
+    >
+  >
+>;
 
-export function defaultAddNodeToField(
+export function processNodeFieldDefinition<T extends Definition>(
   parentNode: tsm.Node,
-  field: string,
-  rawNode: string,
-): void {
-  const addFunctionName = `add${StringUtils.upperFirst(field)}` as keyof tsm.Node;
-  const addFunction = parentNode[addFunctionName] as (input: string[]) => unknown;
-  if (typeof addFunction !== 'function') {
+  instruction: Instruction,
+  input: ProcessNodeFieldInput<T>,
+) {
+  const field = instruction.field as DefinitionFields<T>;
+  const modificationFunction: Maybe<() => void> = input?.[field]?.[instruction.type];
+  if (typeof modificationFunction !== 'function') {
     throw new TypeError(
-      `Unable to add node to field of name '${field}' for node of kind '${parentNode.getKindName()}'`,
+      `${
+        InstructionType[instruction.type]
+      } Instruction not supported for ${parentNode.getKindName()}.${instruction.field}`,
     );
   }
-  addFunction.call(parentNode, [rawNode]);
-}
-
-export function addNodeToField(
-  parentNode: tsm.Node,
-  field: string,
-  nodeToAdd: ts.Node,
-): void {
-  const rawNode = tsm.printNode(nodeToAdd, { removeComments: false });
-
-  switch (parentNode.getKind()) {
-    case ts.SyntaxKind.FunctionDeclaration: {
-      return processFunctionDeclarationFieldNode(
-        parentNode as tsm.FunctionDeclaration,
-        field,
-        nodeToAdd,
-      );
-    }
-
-    default: {
-      defaultAddNodeToField(parentNode, field, rawNode);
-    }
-  }
+  modificationFunction();
 }

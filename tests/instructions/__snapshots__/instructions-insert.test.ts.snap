@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`Instructions > Generate INSERT Instruction > should generate an INSERT Instruction if the field is an array of nodes, a rule evaluates to an INSERT Instruction and a numerical index is defined for the INSERT position 1`] = `
+snapshot[`Instructions > Generate INSERT Instruction > should generate an INSERT Instruction if the field is an array of nodes, a rule evaluates to an INSERT Instruction and a numerical index is defined and a natural number for the INSERT position 1`] = `
 [
   {
     definition: {
@@ -13,14 +13,14 @@ snapshot[`Instructions > Generate INSERT Instruction > should generate an INSERT
       ],
     },
     field: "statements",
-    index: 0,
+    index: 1,
     path: "",
     type: "INSERT",
   },
 ]
 `;
 
-snapshot[`Instructions > Generate INSERT Instruction > should generate an INSERT Instruction if the field is an array of nodes, a rule evaluates to an INSERT Instruction and a string index is evaluated to an integer for the INSERT position 1`] = `
+snapshot[`Instructions > Generate INSERT Instruction > should generate an INSERT Instruction if the field is an array of nodes, a rule evaluates to an INSERT Instruction and a string index is evaluated to a natural number for the INSERT position 1`] = `
 [
   {
     definition: {

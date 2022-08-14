@@ -14,3 +14,9 @@ snapshot[`Instructions > Generate UNSET Instruction > should not generate an UNS
 [
 ]
 `;
+
+snapshot[`Instructions > Process UNSET Instruction > should process an UNSET Instruction if the field is a node, the field node exists and no instructions are specified on the field definition 1`] = `
+"
+export function hello() { }
+"
+`;

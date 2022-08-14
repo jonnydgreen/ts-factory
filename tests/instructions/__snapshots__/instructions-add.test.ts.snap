@@ -121,6 +121,6 @@ snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruc
 
 snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes and the field is a nested definition 1`] = `
 "
-export function hello() { }
+export default async function hello() { }
 "
 `;

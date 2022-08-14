@@ -1,12 +1,15 @@
 import { Definition } from '../../definitions/definitions.ts';
-import { ts, tsm } from '../../deps.ts';
+import { ts } from '../../deps.ts';
 import {
   compileDefaultNodeInstructions,
   createPath,
   generateInstructions,
+  processInstruction,
 } from '../../instructions/instructions.ts';
-import { InstructionType } from '../../instructions/instructions.type.ts';
+import { Instruction, InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertThrows, blocks } from '../../test.deps.ts';
+import { AssertionError } from '../../utils/utils.assert.ts';
+import { createSourceFile } from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
   blocks.describe('generateInstructions', () => {
@@ -18,11 +21,7 @@ blocks.describe('Instructions', () => {
           kind: ts.SyntaxKind.SourceFile,
           statements: [],
         };
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'function hello() {}',
-        );
+        const sourceFile = createSourceFile('function hello() {}');
         const [statement] = sourceFile.getStatements();
 
         // Act
@@ -31,7 +30,7 @@ blocks.describe('Instructions', () => {
         // Assert
         assertIsError(
           result,
-          TypeError,
+          AssertionError,
           'Definition of kind \'SourceFile\' does not match expected Node kind \'FunctionDeclaration\'',
         );
       },
@@ -46,11 +45,7 @@ blocks.describe('Instructions', () => {
           statements: [],
           invalid: [{ kind: ts.SyntaxKind.AbstractKeyword }],
         } as unknown as Definition;
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'function hello() {}',
-        );
+        const sourceFile = createSourceFile('function hello() {}');
 
         // Act
         const result = assertThrows(() => generateInstructions(sourceFile, definition));
@@ -65,8 +60,37 @@ blocks.describe('Instructions', () => {
     );
   });
 
+  blocks.describe('processInstruction', () => {
+    blocks.it('should error if invalid instruction type is passed', () => {
+      // Arrange
+      const sourceFile = createSourceFile();
+      sourceFile.getKind = () => 98765;
+      sourceFile.getKindName = () => 'InvalidKind';
+      const instruction: Instruction = {
+        type: InstructionType.ADD,
+        path: createPath(),
+        field: 'statements',
+        definition: {
+          kind: ts.SyntaxKind.FunctionDeclaration,
+          name: 'hello',
+          parameters: [],
+        },
+      };
+
+      // Act
+      const error = assertThrows(() => processInstruction(sourceFile, instruction));
+
+      // Assert
+      assertIsError(
+        error,
+        TypeError,
+        'Unable to Process Instruction: unsupported parent node of kind InvalidKind',
+      );
+    });
+  });
+
   blocks.describe('compileDefaultNodeInstructions', () => {
-    blocks.it('should error if invalid instruction type is pass', () => {
+    blocks.it('should error if invalid instruction type is passed', () => {
       // Act
       const result = assertThrows(() =>
         compileDefaultNodeInstructions(
@@ -78,7 +102,11 @@ blocks.describe('Instructions', () => {
       );
 
       // Assert
-      assertIsError(result, TypeError, 'Input invalid-instruction-type not supported');
+      assertIsError(
+        result,
+        AssertionError,
+        'Input invalid-instruction-type not supported',
+      );
     });
   });
 });

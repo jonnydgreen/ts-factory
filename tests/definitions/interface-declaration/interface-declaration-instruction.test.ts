@@ -1,11 +1,11 @@
 import { Definition } from '../../../definitions/definitions.ts';
-import { ts, tsm } from '../../../deps.ts';
+import { ts } from '../../../deps.ts';
 import {
   generateInstructions,
   processInstructions,
 } from '../../../instructions/instructions.ts';
 import { assertSnapshot, blocks } from '../../../test.deps.ts';
-import { createTestName, TestDefinition } from '../../test-utils.ts';
+import { createSourceFile, createTestName, TestDefinition } from '../../test-utils.ts';
 
 blocks.describe('Interface Declaration', () => {
   const definitions: TestDefinition<Definition>[] = [
@@ -84,11 +84,7 @@ blocks.describe('Interface Declaration', () => {
       name: definition.name,
       fn: async (t) => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          definition.sourceFileContents,
-        );
+        const sourceFile = createSourceFile(definition.sourceFileContents);
         sourceFile.formatText();
         const instructions = generateInstructions(sourceFile, definition.input);
 

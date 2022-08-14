@@ -1,4 +1,5 @@
-import { ts } from '../deps.ts';
+import { DefinitionFields } from '../definitions/definitions.type.ts';
+import { ts, tsm } from '../deps.ts';
 import { Instruction, InstructionType } from '../instructions/instructions.type.ts';
 
 export interface TestDefinitionError {
@@ -18,6 +19,10 @@ export interface TestDefinition<TInput> {
   ignore?: boolean;
   only?: boolean;
 }
+
+export type TestDefinitionFields<TInput> = Partial<
+  Record<DefinitionFields<TInput>, TestDefinition<TInput>[]>
+>;
 
 export function sanitiseInstructions(instructions: Instruction[]): unknown[] {
   return instructions.map((instruction) => ({
@@ -56,4 +61,11 @@ export function createTestName(
   }
 
   return testName;
+}
+
+export function createSourceFile(text?: string): tsm.SourceFile {
+  const project = new tsm.Project();
+  const sourceFile = project.createSourceFile(`${crypto.randomUUID()}.ts`, text);
+  sourceFile.formatText();
+  return sourceFile;
 }

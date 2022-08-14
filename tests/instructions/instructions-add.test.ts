@@ -1,11 +1,16 @@
 import { Definition, Input } from '../../definitions/definitions.ts';
-import { ts, tsm } from '../../deps.ts';
+import { ts } from '../../deps.ts';
 import {
   generateInstructions,
   processInstructions,
 } from '../../instructions/instructions.ts';
 import { assertSnapshot, blocks } from '../../test.deps.ts';
-import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
+import {
+  createSourceFile,
+  createTestName,
+  sanitiseInstructions,
+  TestDefinition,
+} from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
   blocks.describe(`Generate ADD Instruction`, () => {
@@ -173,11 +178,7 @@ blocks.describe('Instructions', () => {
         name: definition.name,
         fn: async (t) => {
           // Arrange
-          const project = new tsm.Project();
-          const sourceFile = project.createSourceFile(
-            `${crypto.randomUUID()}.ts`,
-            definition.sourceFileContents,
-          );
+          const sourceFile = createSourceFile(definition.sourceFileContents);
 
           // Act
           const instructions = generateInstructions(sourceFile, definition.input);
@@ -234,6 +235,7 @@ blocks.describe('Instructions', () => {
               modifiers: [
                 { kind: ts.SyntaxKind.ExportKeyword },
                 { kind: ts.SyntaxKind.AsyncKeyword },
+                { kind: ts.SyntaxKind.DefaultKeyword },
               ],
               parameters: [],
               // TODO: uncomment
@@ -252,11 +254,7 @@ blocks.describe('Instructions', () => {
         name: definition.name,
         fn: async (t) => {
           // Arrange
-          const project = new tsm.Project();
-          const sourceFile = project.createSourceFile(
-            `${crypto.randomUUID()}.ts`,
-            definition.sourceFileContents,
-          );
+          const sourceFile = createSourceFile(definition.sourceFileContents);
           sourceFile.formatText();
           const instructions = generateInstructions(sourceFile, definition.input);
 

@@ -1,11 +1,15 @@
 import { Definition } from '../../definitions/definitions.ts';
-import { ts, tsm } from '../../deps.ts';
+import { SourceFileInput } from '../../definitions/source-file/source-file.type.ts';
+import { ts } from '../../deps.ts';
+import { createPath } from '../../instructions/instructions.ts';
+import { Instruction, InstructionType } from '../../instructions/instructions.type.ts';
 import {
   buildNodeFromDefinition,
-  defaultAddNodeToField,
   getNodeByPath,
+  processNodeFieldDefinition,
 } from '../../instructions/instructions.utils.ts';
 import { assertEquals, assertIsError, assertThrows, blocks } from '../../test.deps.ts';
+import { createSourceFile } from '../test-utils.ts';
 
 blocks.describe('Instructions Utils', () => {
   blocks.describe('getNodeByPath', () => {
@@ -13,11 +17,7 @@ blocks.describe('Instructions Utils', () => {
       'should find a node at the defined path',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'export function hello() {}',
-        );
+        const sourceFile = createSourceFile('export function hello() {}');
         const path = 'statements[0].name';
 
         // Act
@@ -32,13 +32,9 @@ blocks.describe('Instructions Utils', () => {
       'should find a node at the defined nested path',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          `export function hello() {
-            console.log("hello");
-          }`,
-        );
+        const sourceFile = createSourceFile(`export function hello() {
+            console.info("hello");
+          }`);
         const path = 'statements[0].body.statements[0].expression.expression';
 
         // Act
@@ -53,11 +49,7 @@ blocks.describe('Instructions Utils', () => {
       'should throw an error if a path entry does not exist',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'export function hello() {}',
-        );
+        const sourceFile = createSourceFile('export function hello() {}');
         const path = 'statements[0].type';
 
         // Act
@@ -76,11 +68,7 @@ blocks.describe('Instructions Utils', () => {
       'should throw an error if a path entry for an array node is not a number',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'export function hello() {}',
-        );
+        const sourceFile = createSourceFile('export function hello() {}');
         const path = 'statements[hello]';
 
         // Act
@@ -99,11 +87,7 @@ blocks.describe('Instructions Utils', () => {
       'should throw an error if a path entry for an array node is not an index of the array',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'export function hello() {}',
-        );
+        const sourceFile = createSourceFile('export function hello() {}');
         const path = 'statements[1]';
 
         // Act
@@ -142,27 +126,33 @@ blocks.describe('Instructions Utils', () => {
     );
   });
 
-  blocks.describe('defaultAddNodeToField', () => {
+  blocks.describe('processNodeFieldDefinition', () => {
     blocks.it(
-      'should throw an error if mutation function does not exist for field',
+      'should throw an error if the definition kind is not supported',
       () => {
         // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          'export function hello() {}',
-        );
+        const instruction: Instruction = {
+          type: InstructionType.SET,
+          field: 'statements',
+          path: createPath(),
+          definition: { kind: ts.SyntaxKind.FunctionDeclaration, parameters: [] },
+        };
+        const sourceFile = createSourceFile();
 
         // Act
         const result = assertThrows(() =>
-          defaultAddNodeToField(sourceFile, 'invalid', 'raw-node')
+          processNodeFieldDefinition<SourceFileInput>(sourceFile, instruction, {
+            statements: {
+              ADD: () => {},
+            },
+          })
         );
 
         // Assert
         assertIsError(
           result,
           TypeError,
-          'Unable to add node to field of name \'invalid\' for node of kind \'SourceFile\'',
+          'SET Instruction not supported for SourceFile.statements',
         );
       },
     );
