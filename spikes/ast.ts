@@ -1,9 +1,6 @@
 import { ts, tsm } from '../deps.ts';
-import { TSNode, TSNodeAST } from './ast.type.ts';
-import { buildNode } from './node-builder.ts';
 
 const factory = ts.factory;
-const SyntaxKind = ts.SyntaxKind;
 
 function printAST(node: ts.Node): unknown {
   const cache: unknown[] = [];
