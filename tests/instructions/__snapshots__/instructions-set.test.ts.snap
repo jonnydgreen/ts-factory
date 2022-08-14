@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`Instructions > SET Instruction > should define an SET instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
+snapshot[`Instructions > Generate SET Instruction > should generate a SET Instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
 [
   {
     definition: {
@@ -13,7 +13,7 @@ snapshot[`Instructions > SET Instruction > should define an SET instruction if t
 ]
 `;
 
-snapshot[`Instructions > SET Instruction > should define an SET instruction if the field is a node and the field node is not found using the defined instruction ID 1`] = `
+snapshot[`Instructions > Generate SET Instruction > should generate a SET Instruction if the field is a node and the field node is not found using the defined instruction ID 1`] = `
 [
   {
     definition: {
@@ -26,12 +26,18 @@ snapshot[`Instructions > SET Instruction > should define an SET instruction if t
 ]
 `;
 
-snapshot[`Instructions > SET Instruction > should not define an SET instruction if the field is a node, the field node exists and no instructions are specified on the field definition 1`] = `
+snapshot[`Instructions > Generate SET Instruction > should not generate a SET Instruction if the field is a node, the field node exists and no instructions are specified on the field definition 1`] = `
 [
 ]
 `;
 
-snapshot[`Instructions > SET Instruction > should not define an SET instruction if the field is a node and the field node is found using the defined instruction ID 1`] = `
+snapshot[`Instructions > Generate SET Instruction > should not generate a SET Instruction if the field is a node and the field node is found using the defined instruction ID 1`] = `
 [
 ]
+`;
+
+snapshot[`Instructions > Process SET Instruction > should process a SET Instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
+"
+export function hello(): void { }
+"
 `;

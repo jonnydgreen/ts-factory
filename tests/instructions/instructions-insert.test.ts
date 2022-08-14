@@ -1,18 +1,24 @@
-import { ts, tsm } from '../../deps.ts';
+import { Input } from '../../definitions/definitions.ts';
+import { ts } from '../../deps.ts';
 import { generateInstructions } from '../../instructions/instructions.ts';
 import { InstructionType } from '../../instructions/instructions.type.ts';
 import { assertIsError, assertSnapshot, assertThrows, blocks } from '../../test.deps.ts';
-import { createTestName, sanitiseInstructions, TestDefinition } from '../test-utils.ts';
+import {
+  createSourceFile,
+  createTestName,
+  sanitiseInstructions,
+  TestDefinition,
+} from '../test-utils.ts';
 
 blocks.describe('Instructions', () => {
-  blocks.describe(`INSERT Instruction`, () => {
-    const definitions: TestDefinition[] = [
+  blocks.describe(`Generate INSERT Instruction`, () => {
+    const definitions: TestDefinition<Input>[] = [
       {
         name: createTestName(
-          'should define an INSERT instruction if',
+          'should generate an INSERT Instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
-          'a numerical index is defined for the INSERT position',
+          'a rule evaluates to an INSERT Instruction',
+          'a numerical index is defined and a natural number for the INSERT position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -21,8 +27,8 @@ blocks.describe('Instructions', () => {
               __instructions: {
                 rules: [{
                   instruction: InstructionType.INSERT,
-                  condition: 'name.text="hello"',
-                  index: 0,
+                  condition: 'name.text!="hello"',
+                  index: 1,
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
@@ -35,15 +41,16 @@ blocks.describe('Instructions', () => {
           ],
         },
         sourceFileContents: `
-          function hello() {}
+          function foo() {}
+          function bar() {}
         `,
       },
       {
         name: createTestName(
-          'should define an INSERT instruction if',
+          'should generate an INSERT Instruction if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
-          'a string index is evaluated to an integer for the INSERT position',
+          'a rule evaluates to an INSERT Instruction',
+          'a string index is evaluated to a natural number for the INSERT position',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -52,8 +59,9 @@ blocks.describe('Instructions', () => {
               __instructions: {
                 rules: [{
                   instruction: InstructionType.INSERT,
-                  condition: 'name.text="hello"',
-                  index: '$ ~> $map(function($v, $i) { $v.name.text = \'hello\' ? $i })',
+                  condition: 'name.text!="hello"',
+                  // TODO: helper function?
+                  index: '$ ~> $map(function($v, $i) { $v.name.text = \'foo\' ? $i })',
                 }],
               },
               kind: ts.SyntaxKind.FunctionDeclaration,
@@ -66,12 +74,12 @@ blocks.describe('Instructions', () => {
           ],
         },
         sourceFileContents: `
-          function hello() {}
+          function foo() {}
         `,
       },
       {
         name: createTestName(
-          'should not define an INSERT instruction if',
+          'should not generate an INSERT Instruction if',
           'the field is an array of nodes',
           'the rule does not evaluate to an instruction',
         ),
@@ -103,7 +111,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
+          'a rule evaluates to an INSERT Instruction',
           'a string index is evaluated to a non-integer',
         ),
         input: {
@@ -139,7 +147,7 @@ blocks.describe('Instructions', () => {
         name: createTestName(
           'should throw an error if',
           'the field is an array of nodes',
-          'a rule evaluates to an INSERT instruction',
+          'a rule evaluates to an INSERT Instruction',
           'a string index is evaluated to an integer greater than the length of the array of nodes',
         ),
         input: {
@@ -175,29 +183,30 @@ blocks.describe('Instructions', () => {
     ];
 
     for (const definition of definitions) {
-      blocks.it(definition.name, async (t) => {
-        // Arrange
-        const project = new tsm.Project();
-        const sourceFile = project.createSourceFile(
-          `${crypto.randomUUID()}.ts`,
-          definition.sourceFileContents,
-        );
+      blocks.it({
+        name: definition.name,
+        fn: async (t) => {
+          // Arrange
+          const sourceFile = createSourceFile(definition.sourceFileContents);
 
-        if (definition.error) {
-          // Act
-          const result = assertThrows(() =>
-            generateInstructions(sourceFile, definition.input)
-          );
+          if (definition.error) {
+            // Act
+            const result = assertThrows(() =>
+              generateInstructions(sourceFile, definition.input)
+            );
 
-          // Assert
-          assertIsError(result, definition.error.prototype, definition.error.message);
-        } else {
-          // Act
-          const result = generateInstructions(sourceFile, definition.input);
+            // Assert
+            assertIsError(result, definition.error.prototype, definition.error.message);
+          } else {
+            // Act
+            const result = generateInstructions(sourceFile, definition.input);
 
-          // Assert
-          await assertSnapshot(t, sanitiseInstructions(result));
-        }
+            // Assert
+            await assertSnapshot(t, sanitiseInstructions(result));
+          }
+        },
+        ignore: definition.ignore,
+        only: definition.only,
       });
     }
   });

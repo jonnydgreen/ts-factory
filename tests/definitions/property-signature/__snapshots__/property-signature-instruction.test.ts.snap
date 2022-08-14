@@ -1,0 +1,11 @@
+export const snapshot = {};
+
+snapshot[`Property Signature > should process a basic Property Signature 1`] = `"hello;"`;
+
+snapshot[`Property Signature > should process a Property Signature with an identifier as the name 1`] = `"hello;"`;
+
+snapshot[`Property Signature > should process a Property Signature with modifiers 1`] = `"readonly hello;"`;
+
+snapshot[`Property Signature > should process a Property Signature with a type 1`] = `"hello: string;"`;
+
+snapshot[`Property Signature > should process a Property Signature with a question token 1`] = `"hello?: string;"`;

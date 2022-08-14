@@ -29,7 +29,7 @@
 ```jsonc
 ```
 
-## ADD instruction if function with name hello not present
+## Generate ADD Instruction if function with name hello not present
 
 **AST:**
 
@@ -74,7 +74,7 @@
 }
 ```
 
-## REPLACE instruction if rule condition for REPLACE matches
+## Generate REPLACE Instruction if rule condition for REPLACE matches
 
 **AST:**
 

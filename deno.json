@@ -2,7 +2,9 @@
   "lint": {
     "files": {
       "exclude": [
-        "spikes"
+        "spikes",
+        "scripts/typescript.d.ts",
+        "cov_profile"
       ]
     }
   },
@@ -10,6 +12,13 @@
     "options": {
       "lineWidth": 89,
       "singleQuote": true
+    },
+    "files": {
+      "exclude": [
+        "spikes",
+        "scripts/typescript.d.ts",
+        "cov_profile"
+      ]
     }
   },
   "tasks": {
