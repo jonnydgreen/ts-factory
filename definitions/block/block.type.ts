@@ -1,5 +1,5 @@
 import { ts } from '../../deps.ts';
-import { CreateInput, MergeIntersections } from '../definitions.type.ts';
+import { BaseDefinition, StatementInput } from '../definitions.ts';
 
 /**
  * Reference:
@@ -11,9 +11,7 @@ import { CreateInput, MergeIntersections } from '../definitions.type.ts';
  * @example
  * export function hello(): void {}
  */
-export type BlockInput = MergeIntersections<
-  CreateInput<
-    ts.Block,
-    'statements'
-  > & { multiline?: boolean }
->;
+export interface BlockInput extends BaseDefinition<ts.Block> {
+  statements: StatementInput[];
+  multiline?: boolean;
+}

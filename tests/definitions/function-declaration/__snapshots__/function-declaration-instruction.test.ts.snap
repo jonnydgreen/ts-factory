@@ -1,27 +1,19 @@
 export const snapshot = {};
 
-snapshot[`Function Declaration > definition > should process a Function Declaration 1`] = `
-"function hello() { }
+snapshot[`Function Declaration > definition > should process a Function Declaration 1`] = `"function hello() { }"`;
 
-"
-`;
+snapshot[`Function Declaration > definition > should process a Function Declaration with an Identifier name definition 1`] = `"function hello() { }"`;
 
-snapshot[`Function Declaration > definition > should process a Function Declaration with a object name definition 1`] = `
-"function hello() { }
+snapshot[`Function Declaration > definition > should process a Function Declaration with Modifiers 1`] = `"export async function hello() { }"`;
 
-"
-`;
+snapshot[`Function Declaration > fields > type > should SET the Return Type of a Function Declaration 1`] = `"export function hello(): void { }"`;
 
-snapshot[`Function Declaration > definition > should process a Function Declaration with modifiers 1`] = `
-"export async function hello() { }
+snapshot[`Function Declaration > fields > type > should UNSET the Return Type of a Function Declaration 1`] = `"export function hello() { }"`;
 
-"
-`;
+snapshot[`Function Declaration > fields > modifiers > should ADD Modifiers to the Function Declaration 1`] = `"export async function hello() { }"`;
 
-snapshot[`Function Declaration > fields > type > should SET the return type of a Function Declaration 1`] = `"export function hello(): void { }"`;
+snapshot[`Function Declaration > fields > modifiers > should ADD Modifiers to the Function Declaration with existing modifiers 1`] = `"export default async function hello() { }"`;
 
-snapshot[`Function Declaration > fields > type > should UNSET the return type of a Function Declaration 1`] = `"export function hello() { }"`;
+snapshot[`Function Declaration > fields > asteriskToken > should SET the Asterisk Token of a Function Declaration 1`] = `"export function* hello() { }"`;
 
-snapshot[`Function Declaration > fields > modifiers > should ADD modifiers to the Function Declaration 1`] = `"export async function hello() { }"`;
-
-snapshot[`Function Declaration > fields > modifiers > should ADD modifiers to the Function Declaration with existing modifiers 1`] = `"export default async function hello() { }"`;
+snapshot[`Function Declaration > fields > asteriskToken > should UNSET the Asterisk Token of a Function Declaration 1`] = `"export function hello() { }"`;

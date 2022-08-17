@@ -10,8 +10,8 @@ export class AssertionError extends Error {
   }
 }
 
-export function assertNever(input: never): never {
-  throw new AssertionError(`Input ${input} not supported`);
+export function assertNever(_input: never, message: string): never {
+  throw new AssertionError(message);
 }
 
 export function assertDefinitionKind(
@@ -51,12 +51,32 @@ export function assertTSNodeType<
   }
 }
 
-export function assertTSMNodeKind<TKind extends ts.SyntaxKind>(
-  node: tsm.Node,
+export function assertTSMNodeKind<TNode extends tsm.Node, TKind extends ts.SyntaxKind>(
+  node: unknown,
   kind: TKind,
 ): asserts node is tsm.KindToNodeMappings[TKind] {
-  const nodeKind = node?.getKind();
-  if (!node?.isKind?.(kind)) {
+  if (typeof node === 'undefined') {
+    throw new AssertionError(`Node is not defined`);
+  }
+
+  const nodeKind = (node as TNode).getKind?.();
+  if (!(node as TNode).isKind?.(kind)) {
+    throw new AssertionError(
+      `Invalid Node of kind ${ts.SyntaxKind[nodeKind]}; expected ${ts.SyntaxKind[kind]}`,
+    );
+  }
+}
+
+export function assertTSNodeKind<TNode extends ts.Node, TKind extends ts.SyntaxKind>(
+  node: unknown,
+  kind: TKind,
+): asserts node is tsm.KindToNodeMappings[TKind]['compilerNode'] {
+  if (typeof node === 'undefined') {
+    throw new AssertionError(`Node is not defined`);
+  }
+
+  const nodeKind = (node as TNode).kind;
+  if (nodeKind !== kind) {
     throw new AssertionError(
       `Invalid Node of kind ${ts.SyntaxKind[nodeKind]}; expected ${ts.SyntaxKind[kind]}`,
     );

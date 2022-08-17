@@ -36,8 +36,4 @@ snapshot[`Instructions > Generate SET Instruction > should not generate a SET In
 ]
 `;
 
-snapshot[`Instructions > Process SET Instruction > should process a SET Instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `
-"
-export function hello(): void { }
-"
-`;
+snapshot[`Instructions > Process SET Instruction > should process a SET Instruction if the field is a node, the field node doesn't exist and no instructions are specified on the field definition 1`] = `"export function hello(): void { }"`;

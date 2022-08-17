@@ -1,6 +1,6 @@
 import { Definition } from '../../../definitions/definitions.ts';
 import { FunctionDeclarationInput } from '../../../definitions/function-declaration/function-declaration.type.ts';
-import { ts, tsm } from '../../../deps.ts';
+import { ts } from '../../../deps.ts';
 import {
   generateInstructions,
   processInstructions,
@@ -16,6 +16,7 @@ import { assertTSMNodeKind } from '../../../utils/utils.assert.ts';
 import {
   createSourceFile,
   createTestName,
+  getNodesOfKind,
   TestDefinition,
   TestDefinitionFields,
 } from '../../test-utils.ts';
@@ -38,7 +39,7 @@ blocks.describe('Function Declaration', () => {
       {
         name: createTestName(
           'should process a Function Declaration',
-          'with a object name definition',
+          'with an Identifier name definition',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -56,7 +57,7 @@ blocks.describe('Function Declaration', () => {
       {
         name: createTestName(
           'should process a Function Declaration',
-          'with modifiers',
+          'with Modifiers',
         ),
         input: {
           kind: ts.SyntaxKind.SourceFile,
@@ -85,7 +86,7 @@ blocks.describe('Function Declaration', () => {
           processInstructions(node, instructions);
 
           // Assert
-          await assertSnapshot(t, node.getFullText());
+          await assertSnapshot(t, node.getFullText().trim());
         },
         ignore: definition.ignore,
         only: definition.only,
@@ -97,7 +98,7 @@ blocks.describe('Function Declaration', () => {
     const fieldDefinitions: TestDefinitionFields<FunctionDeclarationInput> = {
       type: [
         {
-          name: createTestName('should SET the return type of a Function Declaration'),
+          name: createTestName('should SET the Return Type of a Function Declaration'),
           input: {
             kind: ts.SyntaxKind.FunctionDeclaration,
             parameters: [],
@@ -108,7 +109,7 @@ blocks.describe('Function Declaration', () => {
           sourceFileContents: 'export function hello() {}',
         },
         {
-          name: createTestName('should UNSET the return type of a Function Declaration'),
+          name: createTestName('should UNSET the Return Type of a Function Declaration'),
           input: {
             kind: ts.SyntaxKind.FunctionDeclaration,
             __instructions: {
@@ -125,7 +126,7 @@ blocks.describe('Function Declaration', () => {
       ],
       modifiers: [
         {
-          name: createTestName('should ADD modifiers to the Function Declaration'),
+          name: createTestName('should ADD Modifiers to the Function Declaration'),
           input: {
             kind: ts.SyntaxKind.FunctionDeclaration,
             parameters: [],
@@ -138,7 +139,7 @@ blocks.describe('Function Declaration', () => {
         },
         {
           name: createTestName(
-            'should ADD modifiers to the Function Declaration with existing modifiers',
+            'should ADD Modifiers to the Function Declaration with existing modifiers',
           ),
           input: {
             kind: ts.SyntaxKind.FunctionDeclaration,
@@ -152,7 +153,7 @@ blocks.describe('Function Declaration', () => {
         },
         {
           name: createTestName(
-            'should throw an error if an unsupported modifier is defined',
+            'should throw an error if an unsupported Modifier is defined',
           ),
           input: {
             kind: ts.SyntaxKind.FunctionDeclaration,
@@ -164,8 +165,39 @@ blocks.describe('Function Declaration', () => {
           sourceFileContents: 'function hello() {}',
           error: {
             prototype: TypeError,
-            message: 'Unsupported Modifier kind ReadonlyKeyword',
+            message:
+              'Unsupported Modifier kind ReadonlyKeyword for Function Declaration',
           },
+        },
+      ],
+      asteriskToken: [
+        {
+          name: createTestName(
+            'should SET the Asterisk Token of a Function Declaration',
+          ),
+          input: {
+            kind: ts.SyntaxKind.FunctionDeclaration,
+            parameters: [],
+            asteriskToken: { kind: ts.SyntaxKind.AsteriskToken },
+          },
+          sourceFileContents: 'export function hello() {}',
+        },
+        {
+          name: createTestName(
+            'should UNSET the Asterisk Token of a Function Declaration',
+          ),
+          input: {
+            kind: ts.SyntaxKind.FunctionDeclaration,
+            __instructions: {
+              rules: [{
+                instruction: InstructionType.UNSET,
+                condition: '$exists(asteriskToken)',
+                field: 'asteriskToken',
+              }],
+            },
+            parameters: [],
+          },
+          sourceFileContents: 'export function* hello() {}',
         },
       ],
     };
@@ -201,7 +233,7 @@ blocks.describe('Function Declaration', () => {
                 processInstructions(node, instructions);
 
                 // Assert
-                await assertSnapshot(t, node.getFullText());
+                await assertSnapshot(t, node.getFullText().trim());
               }
             },
             ignore: definition.ignore,
@@ -212,24 +244,3 @@ blocks.describe('Function Declaration', () => {
     }
   });
 });
-
-// What do we want to test?
-//  - Y - Adding a new Definition
-//  - Y - Adding a new Definition with different options
-//  - Manipulating fields on the definition
-
-// TODO: move
-function getNodesOfKind<
-  TKind extends ts.SyntaxKind,
-  TNode extends tsm.KindToNodeMappings[TKind],
->(currentNode: tsm.Node, kind: TKind): TNode[] {
-  const nodes: TNode[] = [];
-  if (currentNode.isKind(kind)) {
-    nodes.push(currentNode as TNode);
-  }
-
-  currentNode.forEachChild((childNode) => {
-    nodes.push(...getNodesOfKind(childNode, kind) as TNode[]);
-  });
-  return nodes;
-}

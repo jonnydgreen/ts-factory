@@ -1,5 +1,7 @@
 import { ts } from '../../deps.ts';
-import { CreateInput, MergeIntersections } from '../definitions.type.ts';
+import { BaseDefinition, TypeElementInput } from '../definitions.ts';
+import { IdentifierInput } from '../identifier/identifier.type.ts';
+import { ModifierInput } from '../modifier/modifier.type.ts';
 
 /**
  * Reference:
@@ -13,10 +15,13 @@ import { CreateInput, MergeIntersections } from '../definitions.type.ts';
  *   foo: string;
  * }
  */
-export type InterfaceDeclarationInput = MergeIntersections<
-  CreateInput<
-    ts.InterfaceDeclaration,
-    'name' | 'members',
-    'decorators' | 'modifiers' | 'typeParameters' | 'heritageClauses'
-  >
->;
+export interface InterfaceDeclarationInput
+  extends BaseDefinition<ts.InterfaceDeclaration> {
+  name: string | IdentifierInput;
+  members: TypeElementInput[];
+  modifiers?: ModifierInput[];
+  // TODO:
+  // decorators?: unknown[];
+  // typeParameters?: unknown[];
+  // heritageClauses?: unknown[];
+}

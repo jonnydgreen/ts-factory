@@ -6,7 +6,8 @@ import { Instruction, InstructionType } from '../../instructions/instructions.ty
 import {
   buildNodeFromDefinition,
   getNodeByPath,
-  processNodeFieldDefinition,
+  getNodeField,
+  processFieldDefinition,
 } from '../../instructions/instructions.utils.ts';
 import { assertEquals, assertIsError, assertThrows, blocks } from '../../test.deps.ts';
 import { createSourceFile } from '../test-utils.ts';
@@ -126,7 +127,7 @@ blocks.describe('Instructions Utils', () => {
     );
   });
 
-  blocks.describe('processNodeFieldDefinition', () => {
+  blocks.describe('processFieldDefinition', () => {
     blocks.it(
       'should throw an error if the definition kind is not supported',
       () => {
@@ -141,7 +142,7 @@ blocks.describe('Instructions Utils', () => {
 
         // Act
         const result = assertThrows(() =>
-          processNodeFieldDefinition<SourceFileInput>(sourceFile, instruction, {
+          processFieldDefinition<SourceFileInput>(sourceFile, instruction, {
             statements: {
               ADD: () => {},
             },
@@ -153,6 +154,28 @@ blocks.describe('Instructions Utils', () => {
           result,
           TypeError,
           'SET Instruction not supported for SourceFile.statements',
+        );
+      },
+    );
+  });
+
+  blocks.describe('getNodeField', () => {
+    blocks.it(
+      'should throw an error if unable to get the field from a Node',
+      () => {
+        // Arrange
+        const sourceFile = createSourceFile();
+        sourceFile.getKind = () => 987;
+        sourceFile.getKindName = () => 'Invalid';
+
+        // Act
+        const result = assertThrows(() => getNodeField(sourceFile, 'some-field'));
+
+        // Assert
+        assertIsError(
+          result,
+          TypeError,
+          'Unable to get field of name \'some-field\' from node of kind \'Invalid\'',
         );
       },
     );

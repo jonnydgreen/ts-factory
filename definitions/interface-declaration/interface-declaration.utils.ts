@@ -9,33 +9,34 @@ import {
 } from '../../utils/utils.assert.ts';
 import { printNode } from '../../utils/utils.node.ts';
 import { DefinitionFields } from '../definitions.ts';
-import { FunctionDeclarationInput } from './function-declaration.type.ts';
+import { InterfaceDeclarationInput } from './interface-declaration.type.ts';
 
-export function getFunctionDeclarationField(
+export function getInterfaceDeclarationField(
   node: tsm.Node,
   field: string,
 ): Maybe<ItemOrArray<tsm.Node>> {
-  assertTSMNodeKind(node, ts.SyntaxKind.FunctionDeclaration);
-  const astField = field as DefinitionFields<FunctionDeclarationInput>;
+  assertTSMNodeKind(node, ts.SyntaxKind.InterfaceDeclaration);
+  const astField = field as DefinitionFields<InterfaceDeclarationInput>;
   switch (astField) {
     case 'name': {
       return node.getNameNode();
     }
-    case 'type': {
-      return node.getReturnTypeNode();
-    }
-    case 'parameters': {
-      return node.getParameters();
+    case 'members': {
+      return node.getMembers();
     }
     case 'modifiers': {
       return node.getModifiers();
     }
-    case 'body': {
-      return node.getBody();
-    }
-    case 'asteriskToken': {
-      return node.getAsteriskToken();
-    }
+    // TODO
+    // case 'heritageClauses': {
+    //   return node.getHeritageClauses();
+    // }
+    // case 'typeParameters': {
+    //   return node.getTypeParameters();
+    // }
+    // case 'decorators': {
+    //   return node.getChildrenOfKind(ts.SyntaxKind.Decorator);
+    // }
     default: {
       return assertNever(
         astField,
@@ -45,13 +46,19 @@ export function getFunctionDeclarationField(
   }
 }
 
-export function processFunctionDeclaration(
+export function processInterfaceDeclaration(
   parentNode: tsm.Node,
   instruction: Instruction,
   nodeToModify?: ts.Node,
 ): void {
-  assertTSMNodeKind(parentNode, ts.SyntaxKind.FunctionDeclaration);
-  processFieldDefinition<FunctionDeclarationInput>(parentNode, instruction, {
+  assertTSMNodeKind(parentNode, ts.SyntaxKind.InterfaceDeclaration);
+  processFieldDefinition<InterfaceDeclarationInput>(parentNode, instruction, {
+    members: {
+      ADD: () => {
+        assertTSNodeType(nodeToModify, ts.isTypeElement);
+        parentNode.addMember(printNode(nodeToModify));
+      },
+    },
     modifiers: {
       ADD: () => {
         assertTSNodeType(nodeToModify, ts.isModifier);
@@ -61,46 +68,30 @@ export function processFunctionDeclaration(
             parentNode.setIsExported(true);
             break;
           }
-          case ts.SyntaxKind.AsyncKeyword: {
-            parentNode.setIsAsync(true);
+          case ts.SyntaxKind.DeclareKeyword: {
+            parentNode.setHasDeclareKeyword(true);
             break;
           }
-          case ts.SyntaxKind.DefaultKeyword: {
-            parentNode.setIsDefaultExport(true);
-            break;
-          }
+          // TODO: handle default keyword - seems like an issue in the downstream dep
+          // case ts.SyntaxKind.DefaultKeyword: {
+          //   parentNode.setIsDefaultExport(true);
+          //   break;
+          // }
           default: {
             throw new TypeError(
               `Unsupported Modifier kind ${
                 ts.SyntaxKind[kind]
-              } for Function Declaration`,
+              } for Interface Declaration`,
             );
           }
         }
       },
     },
-    asteriskToken: {
-      SET: () => {
-        assertTSNodeType(nodeToModify, ts.isAsteriskToken);
-        parentNode.setIsGenerator(true);
-      },
-      UNSET: () => {
-        parentNode.setIsGenerator(false);
-      },
-    },
-    // TODO
-    body: {},
-    parameters: {},
-    type: {
-      SET: () => {
-        assertTSNodeType(nodeToModify, ts.isTypeNode);
-        parentNode.setReturnType(printNode(nodeToModify));
-      },
-      UNSET: () => {
-        parentNode.removeReturnType();
-      },
-    },
     // Cannot be mutated
     name: {},
+    // TODO
+    // decorators: {},
+    // heritageClauses: {},
+    // typeParameters: {},
   });
 }

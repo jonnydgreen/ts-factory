@@ -1,58 +1,50 @@
 import { ts, tsm } from '../deps.ts';
 import { Maybe } from '../types.ts';
 import { Instruction, InstructionType, ItemOrArray } from './instructions.type.ts';
-import { StringUtils } from '../utils/utils.string.ts';
-import { FunctionDeclarationInput } from '../definitions/function-declaration/function-declaration.type.ts';
 import { Definition } from '../definitions/definitions.ts';
-import { Modifier } from 'https://deno.land/x/ts_morph@15.1.0/common/typescript.d.ts';
-import { DefinitionFields } from '../definitions/definitions.type.ts';
+import { DefinitionFields } from '../definitions/definitions.ts';
+import { getFunctionDeclarationField } from '../definitions/function-declaration/function-declaration.utils.ts';
+import { getPropertySignatureField } from '../definitions/property-signature/property-signature.utils.ts';
+import { getInterfaceDeclarationField } from '../definitions/interface-declaration/interface-declaration.utils.ts';
+import { getSourceFileField } from '../definitions/source-file/source-file.utils.ts';
+import { getBlockField } from '../definitions/block/block.utils.ts';
+import { getExpressionStatementField } from '../definitions/expression-statement/expression-statement.utils.ts';
+import { getCallExpressionField } from '../definitions/call-expression/call-expression.utils.ts';
 
-export function getFunctionDeclarationNodeByDefinitionKey(
-  node: tsm.FunctionDeclaration,
-  fieldName: string,
-): Maybe<ItemOrArray<tsm.Node>> {
-  switch (fieldName as keyof FunctionDeclarationInput) {
-    case 'name': {
-      return node.getNameNode();
-    }
-    case 'type': {
-      return node.getReturnTypeNode();
-    }
-    case 'parameters': {
-      return node.getParameters();
-    }
-    case 'modifiers': {
-      return node.getModifiers();
-    }
-    case 'body': {
-      return node.getBody();
-    }
-  }
-}
-
-// TODO: consider a new name for this
-export function getFieldNodeByDefinitionKey(
+export function getNodeField(
   node: tsm.Node,
-  fieldName: string,
+  field: string,
 ): Maybe<ItemOrArray<tsm.Node>> {
   switch (node.getKind()) {
     case ts.SyntaxKind.FunctionDeclaration: {
-      return getFunctionDeclarationNodeByDefinitionKey(
-        node as tsm.FunctionDeclaration,
-        fieldName,
+      return getFunctionDeclarationField(node, field);
+    }
+    case ts.SyntaxKind.InterfaceDeclaration: {
+      return getInterfaceDeclarationField(node, field);
+    }
+    case ts.SyntaxKind.PropertySignature: {
+      return getPropertySignatureField(node, field);
+    }
+    case ts.SyntaxKind.SourceFile: {
+      return getSourceFileField(node, field);
+    }
+    case ts.SyntaxKind.Block: {
+      return getBlockField(node, field);
+    }
+    case ts.SyntaxKind.ExpressionStatement: {
+      return getExpressionStatementField(node, field);
+    }
+    case ts.SyntaxKind.CallExpression: {
+      return getCallExpressionField(node, field);
+    }
+
+    default: {
+      // TODO: assertNever
+      throw new TypeError(
+        `Unable to get field of name '${field}' from node of kind '${node.getKindName()}'`,
       );
     }
   }
-  // TODO: we should probably be less clever here
-  // and provide a mapping for each Syntax Kind
-  const getFunctionName = `get${StringUtils.upperFirst(fieldName)}` as keyof tsm.Node;
-  const getFunction = node[getFunctionName] as () => Maybe<ItemOrArray<tsm.Node>>;
-  if (typeof getFunction !== 'function') {
-    throw new TypeError(
-      `Unable to get field of name '${fieldName}' from node of kind '${node.getKindName()}'`,
-    );
-  }
-  return getFunction.call(node);
 }
 
 export function getNodeByPath(currentNode: tsm.Node, path = ''): tsm.Node {
@@ -64,7 +56,7 @@ export function getNodeByPath(currentNode: tsm.Node, path = ''): tsm.Node {
     .replaceAll(']', '.')
     .replace(/\.+/g, '.')
     .split('.');
-  const nextNodeOrNodes = getFieldNodeByDefinitionKey(currentNode, location);
+  const nextNodeOrNodes = getNodeField(currentNode, location);
   if (Array.isArray(nextNodeOrNodes)) {
     const index = Number(remainingPath?.[0]);
     if (!Number.isInteger(index)) {
@@ -134,7 +126,7 @@ export function buildNodeFromDefinition<TReturn extends ts.Node>(
     case ts.SyntaxKind.InterfaceDeclaration: {
       node = ts.factory.createInterfaceDeclaration(
         undefined, // TODO
-        definition.modifiers?.map<Modifier>(buildNodeFromDefinition),
+        definition.modifiers?.map<ts.Modifier>(buildNodeFromDefinition),
         typeof definition.name === 'string'
           ? definition.name
           : buildNodeFromDefinition<ts.Identifier>(definition.name),
@@ -146,7 +138,7 @@ export function buildNodeFromDefinition<TReturn extends ts.Node>(
     }
     case ts.SyntaxKind.PropertySignature: {
       node = ts.factory.createPropertySignature(
-        definition.modifiers?.map<Modifier>(buildNodeFromDefinition),
+        definition.modifiers?.map<ts.Modifier>(buildNodeFromDefinition),
         typeof definition.name === 'string'
           ? definition.name
           : buildNodeFromDefinition<ts.Identifier>(definition.name),
@@ -232,7 +224,7 @@ export type ProcessNodeFieldInput<T extends Definition> = Record<
   >
 >;
 
-export function processNodeFieldDefinition<T extends Definition>(
+export function processFieldDefinition<T extends Definition>(
   parentNode: tsm.Node,
   instruction: Instruction,
   input: ProcessNodeFieldInput<T>,

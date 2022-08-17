@@ -1,5 +1,5 @@
 import { ts } from '../../deps.ts';
-import { CreateInput } from '../definitions.type.ts';
+import { BaseDefinition } from '../definitions.ts';
 
 /**
  * Reference:
@@ -11,7 +11,4 @@ import { CreateInput } from '../definitions.type.ts';
  * @example
  * async
  */
-export type ModifierInput = CreateInput<
-  ts.Modifier,
-  'kind'
->;
+export type ModifierInput = BaseDefinition<ts.Modifier>;

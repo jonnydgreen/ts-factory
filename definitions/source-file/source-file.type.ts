@@ -1,7 +1,6 @@
 import { ts } from '../../deps.ts';
-import { CreateInput } from '../definitions.type.ts';
+import { BaseDefinition, StatementInput } from '../definitions.ts';
 
-export type SourceFileInput = CreateInput<
-  ts.SourceFile,
-  'statements'
->;
+export interface SourceFileInput extends BaseDefinition<ts.SourceFile> {
+  statements: StatementInput[];
+}
