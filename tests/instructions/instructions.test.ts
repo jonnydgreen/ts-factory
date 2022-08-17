@@ -53,7 +53,7 @@ blocks.describe('Instructions', () => {
         // Assert
         assertIsError(
           result,
-          TypeError,
+          AssertionError,
           'Unable to get field of name \'invalid\' from node of kind \'SourceFile\'',
         );
       },
@@ -105,7 +105,7 @@ blocks.describe('Instructions', () => {
       assertIsError(
         result,
         AssertionError,
-        'Input invalid-instruction-type not supported',
+        'Unable to compile default node instructions: unsupported instruction type invalid-instruction-type',
       );
     });
   });

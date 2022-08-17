@@ -1,5 +1,5 @@
 import { ts } from '../../deps.ts';
-import { CreateInput } from '../definitions.type.ts';
+import { BaseDefinition } from '../definitions.ts';
 
 /**
  * Reference:
@@ -11,7 +11,4 @@ import { CreateInput } from '../definitions.type.ts';
  * @example
  * void
  */
-export type KeywordTypeNodeInput = CreateInput<
-  ts.KeywordTypeNode,
-  'kind'
->;
+export type KeywordTypeNodeInput = BaseDefinition<ts.KeywordTypeNode>;

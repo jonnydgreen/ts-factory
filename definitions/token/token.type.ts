@@ -1,6 +1,5 @@
 import { ts } from '../../deps.ts';
-import { Instructions } from '../../instructions/instructions.type.ts';
-import { LeadingTriviaInput } from '../trivia/trivia.type.ts';
+import { BaseDefinition } from '../definitions.ts';
 
 /**
  * Reference:
@@ -12,11 +11,9 @@ import { LeadingTriviaInput } from '../trivia/trivia.type.ts';
  * @example
  * ? // Question Token
  */
-export interface TokenInput {
-  kind: TokenInputKind;
-  __instructions?: Instructions;
-  leadingTrivia?: LeadingTriviaInput;
-}
+export type TokenInput<TKind extends TokenInputKind = TokenInputKind> = BaseDefinition<
+  ts.Token<TKind>
+>;
 
 export type TokenInputKind =
   | ts.SyntaxKind.SuperKeyword

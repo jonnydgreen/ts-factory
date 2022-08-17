@@ -1,5 +1,12 @@
 import { ts } from '../../deps.ts';
-import { CreateInput } from '../definitions.type.ts';
+import {
+  BaseDefinition,
+  MemberNameInput,
+  StatementInput,
+  TypeNodeInput,
+} from '../definitions.ts';
+import { ModifierInput } from '../modifier/modifier.type.ts';
+import { TokenInput } from '../token/token.type.ts';
 
 /**
  * Reference:
@@ -11,19 +18,20 @@ import { CreateInput } from '../definitions.type.ts';
  * @example
  * export function hello(): void {}
  */
-export type FunctionDeclarationInput = CreateInput<
-  ts.FunctionDeclaration,
-  'parameters',
-  'name' | 'type' | 'modifiers' | 'body'
->;
+export interface FunctionDeclarationInput
+  extends BaseDefinition<ts.FunctionDeclaration> {
+  // TODO
+  parameters: unknown[];
+  name?: string | MemberNameInput;
+  type?: TypeNodeInput;
+  modifiers?: ModifierInput[];
+  body?: StatementInput;
+  // TODO: maybe have a punctuation token input type?
+  asteriskToken?: TokenInput<ts.SyntaxKind.AsteriskToken>;
+}
 // TODO: populate the rest
 // {
 //   parameters: readonly ParameterDeclarationInput[];
 //   decorators?: readonly DecoratorInput[];
-//   modifiers?: readonly ModifierInput[];
-//   asteriskToken?: AsteriskTokenInput;
-//   name?: string | IdentifierInput;
 //   typeParameters?: readonly TypeParameterDeclarationInput[];
-//   type?: TypeNodeInput;
-//   body?: BlockInput;
 // }

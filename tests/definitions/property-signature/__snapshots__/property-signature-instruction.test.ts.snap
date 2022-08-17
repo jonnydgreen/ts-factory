@@ -1,11 +1,43 @@
 export const snapshot = {};
 
-snapshot[`Property Signature > should process a basic Property Signature 1`] = `"hello;"`;
+snapshot[`Property Signature > definition > should process a basic Property Signature 1`] = `
+"interface Hello {
+    hello;
+ }"
+`;
 
-snapshot[`Property Signature > should process a Property Signature with an identifier as the name 1`] = `"hello;"`;
+snapshot[`Property Signature > definition > should process a Property Signature with an Identifier as the name 1`] = `
+"interface Hello {
+    hello;
+ }"
+`;
 
-snapshot[`Property Signature > should process a Property Signature with modifiers 1`] = `"readonly hello;"`;
+snapshot[`Property Signature > definition > should process a Property Signature with Modifiers 1`] = `
+"interface Hello {
+    readonly hello;
+ }"
+`;
 
-snapshot[`Property Signature > should process a Property Signature with a type 1`] = `"hello: string;"`;
+snapshot[`Property Signature > definition > should process a Property Signature with a Type 1`] = `
+"interface Hello {
+    hello: string;
+ }"
+`;
 
-snapshot[`Property Signature > should process a Property Signature with a question token 1`] = `"hello?: string;"`;
+snapshot[`Property Signature > definition > should process a Property Signature with a Question Token 1`] = `
+"interface Hello {
+    hello?: string;
+ }"
+`;
+
+snapshot[`Property Signature > fields > type > should SET the Type of a Property Signature 1`] = `"foo: string;"`;
+
+snapshot[`Property Signature > fields > type > should UNSET the Type of a Property Signature 1`] = `"foo;"`;
+
+snapshot[`Property Signature > fields > questionToken > should SET the Question Token of a Property Signature 1`] = `"foo?: string;"`;
+
+snapshot[`Property Signature > fields > questionToken > should UNSET the Question Token of a Property Signature 1`] = `"foo: string;"`;
+
+snapshot[`Property Signature > fields > modifiers > should ADD Modifiers to the Property Signature 1`] = `"readonly foo: string;"`;
+
+snapshot[`Property Signature > fields > modifiers > should ADD Modifiers to the Property Signature with existing modifiers 1`] = `"readonly foo: string;"`;

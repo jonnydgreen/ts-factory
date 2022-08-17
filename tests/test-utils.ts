@@ -1,4 +1,4 @@
-import { DefinitionFields } from '../definitions/definitions.type.ts';
+import { DefinitionFields } from '../definitions/definitions.ts';
 import { ts, tsm } from '../deps.ts';
 import { Instruction, InstructionType } from '../instructions/instructions.type.ts';
 
@@ -68,4 +68,19 @@ export function createSourceFile(text?: string): tsm.SourceFile {
   const sourceFile = project.createSourceFile(`${crypto.randomUUID()}.ts`, text);
   sourceFile.formatText();
   return sourceFile;
+}
+
+export function getNodesOfKind<
+  TKind extends ts.SyntaxKind,
+  TNode extends tsm.KindToNodeMappings[TKind],
+>(currentNode: tsm.Node, kind: TKind): TNode[] {
+  const nodes: TNode[] = [];
+  if (currentNode.isKind(kind)) {
+    nodes.push(currentNode as TNode);
+  }
+
+  currentNode.forEachChild((childNode) => {
+    nodes.push(...getNodesOfKind(childNode, kind) as TNode[]);
+  });
+  return nodes;
 }

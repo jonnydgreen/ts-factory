@@ -7,6 +7,7 @@ import {
   assertNever,
   assertNotArray,
   assertTSMNodeKind,
+  assertTSNodeKind,
   assertTSNodeType,
 } from '../../utils/utils.assert.ts';
 import { createSourceFile } from '../test-utils.ts';
@@ -17,15 +18,17 @@ blocks.describe('Assert Utils', () => {
       {
         test: 'should error if called',
         input: 'hello',
-        error: 'Input hello not supported',
+        message: 'Input hello not supported',
       },
     ].forEach((definition) => {
       blocks.it(definition.test, () => {
         // Act
-        const result = assertThrows(() => assertNever(definition.input as never));
+        const result = assertThrows(() =>
+          assertNever(definition.input as never, definition.message)
+        );
 
         // Assert
-        assertIsError(result, AssertionError, definition.error);
+        assertIsError(result, AssertionError, definition.message);
       });
     });
   });
@@ -75,27 +78,59 @@ blocks.describe('Assert Utils', () => {
     });
   });
 
-  blocks.describe('assertTSMNodeKind', () => {
+  blocks.describe('assertTSNodeKind', () => {
     [
       {
-        test: 'should error if invalid kind',
+        test: 'should error if not defined',
         input: undefined,
-        kind: ts.SyntaxKind.BinaryExpression,
+        kind: ts.SyntaxKind.ArrowFunction,
+        error: 'Node is not defined',
+      },
+      {
+        test: 'should error if invalid kind',
+        input: createSourceFile().compilerNode,
+        kind: ts.SyntaxKind.ArrowFunction,
+        error: 'Invalid Node of kind SourceFile; expected ArrowFunction',
       },
     ].forEach((definition) => {
       blocks.it(definition.test, () => {
-        const sourceFile = createSourceFile();
-
         // Act
         const result = assertThrows(() =>
-          assertTSMNodeKind(sourceFile, definition.kind)
+          assertTSNodeKind(definition.input, definition.kind)
+        );
+
+        // Assert
+        assertIsError(result, AssertionError, definition.error);
+      });
+    });
+  });
+
+  blocks.describe('assertTSMNodeKind', () => {
+    [
+      {
+        test: 'should error if not defined',
+        input: undefined,
+        kind: ts.SyntaxKind.ArrowFunction,
+        error: 'Node is not defined',
+      },
+      {
+        test: 'should error if invalid kind',
+        input: createSourceFile(),
+        kind: ts.SyntaxKind.BinaryExpression,
+        error: 'Invalid Node of kind SourceFile; expected BinaryExpression',
+      },
+    ].forEach((definition) => {
+      blocks.it(definition.test, () => {
+        // Act
+        const result = assertThrows(() =>
+          assertTSMNodeKind(definition.input, definition.kind)
         );
 
         // Assert
         assertIsError(
           result,
           AssertionError,
-          'Invalid Node of kind SourceFile; expected BinaryExpression',
+          definition.error,
         );
       });
     });

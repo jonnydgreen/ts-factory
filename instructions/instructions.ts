@@ -19,12 +19,14 @@ import {
   isDefined,
 } from '../utils/utils.assert.ts';
 import {
-  getFieldNodeByDefinitionKey,
   getNodeByPath,
+  getNodeField,
   shouldBuildNodeFromDefinition,
 } from './instructions.utils.ts';
 import { processFunctionDeclaration } from '../definitions/function-declaration/function-declaration.utils.ts';
 import { processSourceFile } from '../definitions/source-file/source-file.utils.ts';
+import { processPropertySignature } from '../definitions/property-signature/property-signature.utils.ts';
+import { processInterfaceDeclaration } from '../definitions/interface-declaration/interface-declaration.utils.ts';
 
 export function getDefinitionEntries(
   definition: Definition,
@@ -101,7 +103,10 @@ export function compileDefaultNodeInstructions(
       }];
     }
     default: {
-      assertNever(instructionType);
+      assertNever(
+        instructionType,
+        `Unable to compile default node instructions: unsupported instruction type ${instructionType}`,
+      );
     }
   }
   // TODO: assert the correct instruction type somewhere
@@ -298,7 +303,7 @@ export function generateInstructions(
 
   for (const [field, fieldDefinitions] of getDefinitionEntries(definition)) {
     // Get the running node field
-    const nodes = getFieldNodeByDefinitionKey(node, field);
+    const nodes = getNodeField(node, field);
 
     // If no node or nodes found, we can immediately build an instruction
     if (!isDefined(nodes)) {
@@ -451,6 +456,12 @@ export function processInstruction(
     }
     case ts.SyntaxKind.FunctionDeclaration: {
       return processFunctionDeclaration(parentNode, instruction, nodeToModify);
+    }
+    case ts.SyntaxKind.InterfaceDeclaration: {
+      return processInterfaceDeclaration(parentNode, instruction, nodeToModify);
+    }
+    case ts.SyntaxKind.PropertySignature: {
+      return processPropertySignature(parentNode, instruction, nodeToModify);
     }
     default: {
       // TODO: assertNever

@@ -113,14 +113,6 @@ snapshot[`Instructions > Generate ADD Instruction > should not generate an ADD I
 ]
 `;
 
-snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes, the field nodes don't exist and no instructions are specified on the field definition 1`] = `
-"function hello() { }
+snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes, the field nodes don't exist and no instructions are specified on the field definition 1`] = `"function hello() { }"`;
 
-"
-`;
-
-snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes and the field is a nested definition 1`] = `
-"
-export default async function hello() { }
-"
-`;
+snapshot[`Instructions > Process ADD Instruction > should process an ADD Instruction if the field is an array of nodes and the field is a nested definition 1`] = `"export default async function hello() { }"`;

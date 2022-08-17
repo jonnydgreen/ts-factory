@@ -1,131 +1,133 @@
 export const snapshot = {};
 
-snapshot[`Token > should process a SuperKeyword Token 1`] = `"super"`;
+snapshot[`Token > node > should process a SuperKeyword Token 1`] = `"super"`;
 
-snapshot[`Token > should process a ThisKeyword Token 1`] = `"this"`;
+snapshot[`Token > node > should process a ThisKeyword Token 1`] = `"this"`;
 
-snapshot[`Token > should process a NullKeyword Token 1`] = `"null"`;
+snapshot[`Token > node > should process a NullKeyword Token 1`] = `"null"`;
 
-snapshot[`Token > should process a TrueKeyword Token 1`] = `"true"`;
+snapshot[`Token > node > should process a TrueKeyword Token 1`] = `"true"`;
 
-snapshot[`Token > should process a FalseKeyword Token 1`] = `"false"`;
+snapshot[`Token > node > should process a FalseKeyword Token 1`] = `"false"`;
 
-snapshot[`Token > should process a OpenBraceToken Token 1`] = `"{"`;
+snapshot[`Token > node > should process a OpenBraceToken Token 1`] = `"{"`;
 
-snapshot[`Token > should process a CloseBraceToken Token 1`] = `"}"`;
+snapshot[`Token > node > should process a CloseBraceToken Token 1`] = `"}"`;
 
-snapshot[`Token > should process a OpenParenToken Token 1`] = `"("`;
+snapshot[`Token > node > should process a OpenParenToken Token 1`] = `"("`;
 
-snapshot[`Token > should process a CloseParenToken Token 1`] = `")"`;
+snapshot[`Token > node > should process a CloseParenToken Token 1`] = `")"`;
 
-snapshot[`Token > should process a OpenBracketToken Token 1`] = `"["`;
+snapshot[`Token > node > should process a OpenBracketToken Token 1`] = `"["`;
 
-snapshot[`Token > should process a CloseBracketToken Token 1`] = `"]"`;
+snapshot[`Token > node > should process a CloseBracketToken Token 1`] = `"]"`;
 
-snapshot[`Token > should process a DotToken Token 1`] = `"."`;
+snapshot[`Token > node > should process a DotToken Token 1`] = `"."`;
 
-snapshot[`Token > should process a DotDotDotToken Token 1`] = `"..."`;
+snapshot[`Token > node > should process a DotDotDotToken Token 1`] = `"..."`;
 
-snapshot[`Token > should process a SemicolonToken Token 1`] = `";"`;
+snapshot[`Token > node > should process a SemicolonToken Token 1`] = `";"`;
 
-snapshot[`Token > should process a CommaToken Token 1`] = `","`;
+snapshot[`Token > node > should process a CommaToken Token 1`] = `","`;
 
-snapshot[`Token > should process a QuestionDotToken Token 1`] = `"?."`;
+snapshot[`Token > node > should process a QuestionDotToken Token 1`] = `"?."`;
 
-snapshot[`Token > should process a LessThanToken Token 1`] = `"<"`;
+snapshot[`Token > node > should process a LessThanToken Token 1`] = `"<"`;
 
-snapshot[`Token > should process a LessThanSlashToken Token 1`] = `"</"`;
+snapshot[`Token > node > should process a LessThanSlashToken Token 1`] = `"</"`;
 
-snapshot[`Token > should process a GreaterThanToken Token 1`] = `">"`;
+snapshot[`Token > node > should process a GreaterThanToken Token 1`] = `">"`;
 
-snapshot[`Token > should process a LessThanEqualsToken Token 1`] = `"<="`;
+snapshot[`Token > node > should process a LessThanEqualsToken Token 1`] = `"<="`;
 
-snapshot[`Token > should process a GreaterThanEqualsToken Token 1`] = `">="`;
+snapshot[`Token > node > should process a GreaterThanEqualsToken Token 1`] = `">="`;
 
-snapshot[`Token > should process a EqualsEqualsToken Token 1`] = `"=="`;
+snapshot[`Token > node > should process a EqualsEqualsToken Token 1`] = `"=="`;
 
-snapshot[`Token > should process a ExclamationEqualsToken Token 1`] = `"!="`;
+snapshot[`Token > node > should process a ExclamationEqualsToken Token 1`] = `"!="`;
 
-snapshot[`Token > should process a EqualsEqualsEqualsToken Token 1`] = `"==="`;
+snapshot[`Token > node > should process a EqualsEqualsEqualsToken Token 1`] = `"==="`;
 
-snapshot[`Token > should process a ExclamationEqualsEqualsToken Token 1`] = `"!=="`;
+snapshot[`Token > node > should process a ExclamationEqualsEqualsToken Token 1`] = `"!=="`;
 
-snapshot[`Token > should process a EqualsGreaterThanToken Token 1`] = `"=>"`;
+snapshot[`Token > node > should process a EqualsGreaterThanToken Token 1`] = `"=>"`;
 
-snapshot[`Token > should process a PlusToken Token 1`] = `"+"`;
+snapshot[`Token > node > should process a PlusToken Token 1`] = `"+"`;
 
-snapshot[`Token > should process a MinusToken Token 1`] = `"-"`;
+snapshot[`Token > node > should process a MinusToken Token 1`] = `"-"`;
 
-snapshot[`Token > should process a AsteriskToken Token 1`] = `"*"`;
+snapshot[`Token > node > should process a AsteriskToken Token 1`] = `"*"`;
 
-snapshot[`Token > should process a AsteriskAsteriskToken Token 1`] = `"**"`;
+snapshot[`Token > node > should process a AsteriskAsteriskToken Token 1`] = `"**"`;
 
-snapshot[`Token > should process a SlashToken Token 1`] = `"/"`;
+snapshot[`Token > node > should process a SlashToken Token 1`] = `"/"`;
 
-snapshot[`Token > should process a PercentToken Token 1`] = `"%"`;
+snapshot[`Token > node > should process a PercentToken Token 1`] = `"%"`;
 
-snapshot[`Token > should process a PlusPlusToken Token 1`] = `"++"`;
+snapshot[`Token > node > should process a PlusPlusToken Token 1`] = `"++"`;
 
-snapshot[`Token > should process a MinusMinusToken Token 1`] = `"--"`;
+snapshot[`Token > node > should process a MinusMinusToken Token 1`] = `"--"`;
 
-snapshot[`Token > should process a LessThanLessThanToken Token 1`] = `"<<"`;
+snapshot[`Token > node > should process a LessThanLessThanToken Token 1`] = `"<<"`;
 
-snapshot[`Token > should process a GreaterThanGreaterThanToken Token 1`] = `">>"`;
+snapshot[`Token > node > should process a GreaterThanGreaterThanToken Token 1`] = `">>"`;
 
-snapshot[`Token > should process a GreaterThanGreaterThanGreaterThanToken Token 1`] = `">>>"`;
+snapshot[`Token > node > should process a GreaterThanGreaterThanGreaterThanToken Token 1`] = `">>>"`;
 
-snapshot[`Token > should process a AmpersandToken Token 1`] = `"&"`;
+snapshot[`Token > node > should process a AmpersandToken Token 1`] = `"&"`;
 
-snapshot[`Token > should process a BarToken Token 1`] = `"|"`;
+snapshot[`Token > node > should process a BarToken Token 1`] = `"|"`;
 
-snapshot[`Token > should process a CaretToken Token 1`] = `"^"`;
+snapshot[`Token > node > should process a CaretToken Token 1`] = `"^"`;
 
-snapshot[`Token > should process a ExclamationToken Token 1`] = `"!"`;
+snapshot[`Token > node > should process a ExclamationToken Token 1`] = `"!"`;
 
-snapshot[`Token > should process a TildeToken Token 1`] = `"~"`;
+snapshot[`Token > node > should process a TildeToken Token 1`] = `"~"`;
 
-snapshot[`Token > should process a AmpersandAmpersandToken Token 1`] = `"&&"`;
+snapshot[`Token > node > should process a AmpersandAmpersandToken Token 1`] = `"&&"`;
 
-snapshot[`Token > should process a BarBarToken Token 1`] = `"||"`;
+snapshot[`Token > node > should process a BarBarToken Token 1`] = `"||"`;
 
-snapshot[`Token > should process a QuestionQuestionToken Token 1`] = `"??"`;
+snapshot[`Token > node > should process a QuestionQuestionToken Token 1`] = `"??"`;
 
-snapshot[`Token > should process a QuestionToken Token 1`] = `"?"`;
+snapshot[`Token > node > should process a QuestionToken Token 1`] = `"?"`;
 
-snapshot[`Token > should process a ColonToken Token 1`] = `":"`;
+snapshot[`Token > node > should process a ColonToken Token 1`] = `":"`;
 
-snapshot[`Token > should process a AtToken Token 1`] = `"@"`;
+snapshot[`Token > node > should process a AtToken Token 1`] = `"@"`;
 
-snapshot[`Token > should process a BacktickToken Token 1`] = `"\`"`;
+snapshot[`Token > node > should process a BacktickToken Token 1`] = `"\`"`;
 
-snapshot[`Token > should process a HashToken Token 1`] = `"#"`;
+snapshot[`Token > node > should process a HashToken Token 1`] = `"#"`;
 
-snapshot[`Token > should process a EqualsToken Token 1`] = `"="`;
+snapshot[`Token > node > should process a EqualsToken Token 1`] = `"="`;
 
-snapshot[`Token > should process a PlusEqualsToken Token 1`] = `"+="`;
+snapshot[`Token > node > should process a PlusEqualsToken Token 1`] = `"+="`;
 
-snapshot[`Token > should process a MinusEqualsToken Token 1`] = `"-="`;
+snapshot[`Token > node > should process a MinusEqualsToken Token 1`] = `"-="`;
 
-snapshot[`Token > should process a AsteriskEqualsToken Token 1`] = `"*="`;
+snapshot[`Token > node > should process a AsteriskEqualsToken Token 1`] = `"*="`;
 
-snapshot[`Token > should process a AsteriskAsteriskEqualsToken Token 1`] = `"**="`;
+snapshot[`Token > node > should process a AsteriskAsteriskEqualsToken Token 1`] = `"**="`;
 
-snapshot[`Token > should process a SlashEqualsToken Token 1`] = `"/="`;
+snapshot[`Token > node > should process a SlashEqualsToken Token 1`] = `"/="`;
 
-snapshot[`Token > should process a PercentEqualsToken Token 1`] = `"%="`;
+snapshot[`Token > node > should process a PercentEqualsToken Token 1`] = `"%="`;
 
-snapshot[`Token > should process a LessThanLessThanEqualsToken Token 1`] = `"<<="`;
+snapshot[`Token > node > should process a LessThanLessThanEqualsToken Token 1`] = `"<<="`;
 
-snapshot[`Token > should process a GreaterThanGreaterThanEqualsToken Token 1`] = `">>="`;
+snapshot[`Token > node > should process a GreaterThanGreaterThanEqualsToken Token 1`] = `">>="`;
 
-snapshot[`Token > should process a GreaterThanGreaterThanGreaterThanEqualsToken Token 1`] = `">>>="`;
+snapshot[`Token > node > should process a GreaterThanGreaterThanGreaterThanEqualsToken Token 1`] = `">>>="`;
 
-snapshot[`Token > should process a AmpersandEqualsToken Token 1`] = `"&="`;
+snapshot[`Token > node > should process a AmpersandEqualsToken Token 1`] = `"&="`;
 
-snapshot[`Token > should process a BarEqualsToken Token 1`] = `"|="`;
+snapshot[`Token > node > should process a BarEqualsToken Token 1`] = `"|="`;
 
-snapshot[`Token > should process a LastBinaryOperator Token 1`] = `"^="`;
+snapshot[`Token > node > should process a LastBinaryOperator Token 1`] = `"^="`;
 
-snapshot[`Token > should process a Unknown Token 1`] = `""`;
+snapshot[`Token > node > should process a Unknown Token 1`] = `""`;
 
-snapshot[`Token > should process a EndOfFileToken Token 1`] = `""`;
+snapshot[`Token > node > should process a EndOfFileToken Token 1`] = `""`;
+
+snapshot[`Token > definition > should process a Token 1`] = `"function* hello() { }"`;

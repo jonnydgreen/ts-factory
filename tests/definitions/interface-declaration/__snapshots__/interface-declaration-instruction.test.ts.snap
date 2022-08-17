@@ -1,31 +1,49 @@
 export const snapshot = {};
 
-snapshot[`Interface Declaration > should process an empty Interface Declaration 1`] = `
+snapshot[`Interface Declaration > definition > should process an empty Interface Declaration 1`] = `
 "interface Hello {
-}
-
-"
+}"
 `;
 
-snapshot[`Interface Declaration > should process an Interface Declaration with an Identifier as the name 1`] = `
+snapshot[`Interface Declaration > definition > should process an Interface Declaration with an Identifier as the name 1`] = `
 "interface Hello {
-}
-
-"
+}"
 `;
 
-snapshot[`Interface Declaration > should process an Interface Declaration with modifiers 1`] = `
+snapshot[`Interface Declaration > definition > should process an Interface Declaration with modifiers 1`] = `
 "export interface Hello {
-}
-
-"
+}"
 `;
 
-snapshot[`Interface Declaration > should process an Interface Declaration with members 1`] = `
+snapshot[`Interface Declaration > definition > should process an Interface Declaration with members 1`] = `
 "export interface Hello {
     foo: string;
     bar?: string;
-}
+}"
+`;
 
-"
+snapshot[`Interface Declaration > fields > members > should ADD members to the Interface Declaration 1`] = `
+"interface Hello {
+    baz: number;
+    foo: string;
+    bar?: string;
+}"
+`;
+
+snapshot[`Interface Declaration > fields > modifiers > should ADD export Modifier to the Interface Declaration 1`] = `
+"export interface Hello {
+    foo: string;
+}"
+`;
+
+snapshot[`Interface Declaration > fields > modifiers > should ADD declare Modifier to the Interface Declaration 1`] = `
+"declare interface Hello {
+    foo: string;
+}"
+`;
+
+snapshot[`Interface Declaration > fields > modifiers > should ADD Modifiers to the Interface Declaration with existing modifiers 1`] = `
+"export interface Hello {
+    readonly foo: string;
+}"
 `;

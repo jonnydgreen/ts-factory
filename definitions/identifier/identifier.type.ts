@@ -1,5 +1,5 @@
 import { ts } from '../../deps.ts';
-import { CreateInput } from '../definitions.type.ts';
+import { BaseDefinition } from '../definitions.ts';
 
 /**
  * Reference:
@@ -11,7 +11,6 @@ import { CreateInput } from '../definitions.type.ts';
  * @example
  * hello
  */
-export type IdentifierInput = CreateInput<
-  ts.Identifier,
-  'text'
->;
+export interface IdentifierInput extends BaseDefinition<ts.Identifier> {
+  text: string;
+}

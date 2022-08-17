@@ -1,4 +1,7 @@
+import { ts } from '../deps.ts';
+import { Instructions } from '../instructions/instructions.type.ts';
 import { BlockInput } from './block/block.type.ts';
+import { ExpressionStatementInput } from './expression-statement/expression-statement.type.ts';
 import { FunctionDeclarationInput } from './function-declaration/function-declaration.type.ts';
 import { IdentifierInput } from './identifier/identifier.type.ts';
 import { InterfaceDeclarationInput } from './interface-declaration/interface-declaration.type.ts';
@@ -7,6 +10,15 @@ import { ModifierInput } from './modifier/modifier.type.ts';
 import { PropertySignatureInput } from './property-signature/property-signature.type.ts';
 import { SourceFileInput } from './source-file/source-file.type.ts';
 import { TokenInput } from './token/token.type.ts';
+import { LeadingTriviaInput } from './trivia/trivia.type.ts';
+
+export type DefinitionFields<T> = keyof Omit<T, keyof BaseDefinition<ts.Node>>;
+
+export interface BaseDefinition<TNode extends ts.Node> {
+  kind: TNode['kind'];
+  __instructions?: Instructions;
+  leadingTrivia?: LeadingTriviaInput;
+}
 
 // Definition
 export type Definition =
@@ -31,7 +43,8 @@ export type TypeElementInput = PropertySignatureInput;
 export type StatementInput =
   | FunctionDeclarationInput
   | InterfaceDeclarationInput
-  | BlockInput;
+  | BlockInput
+  | ExpressionStatementInput;
 
 // Expression Inputs
 export type ExpressionInput = IdentifierInput;

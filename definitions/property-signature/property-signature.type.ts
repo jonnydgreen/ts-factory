@@ -1,5 +1,7 @@
 import { ts } from '../../deps.ts';
-import { CreateInput, MergeIntersections } from '../definitions.type.ts';
+import { BaseDefinition, PropertyNameInput, TypeNodeInput } from '../definitions.ts';
+import { ModifierInput } from '../modifier/modifier.type.ts';
+import { TokenInput } from '../token/token.type.ts';
 
 /**
  * Reference:
@@ -11,10 +13,9 @@ import { CreateInput, MergeIntersections } from '../definitions.type.ts';
  * @example
  * foo: string;
  */
-export type PropertySignatureInput = MergeIntersections<
-  CreateInput<
-    ts.PropertySignature,
-    'name',
-    'modifiers' | 'questionToken' | 'type'
-  >
->;
+export interface PropertySignatureInput extends BaseDefinition<ts.PropertySignature> {
+  name: string | PropertyNameInput;
+  modifiers?: ModifierInput[];
+  questionToken?: TokenInput<ts.SyntaxKind.QuestionToken>;
+  type?: TypeNodeInput;
+}

@@ -186,7 +186,7 @@ blocks.describe('Instructions', () => {
           processInstructions(sourceFile, instructions);
 
           // Assert
-          await assertSnapshot(t, sourceFile.getFullText());
+          await assertSnapshot(t, sourceFile.getFullText().trim());
         },
         ignore: definition.ignore,
         only: definition.only,
